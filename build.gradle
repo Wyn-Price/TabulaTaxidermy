@@ -26,6 +26,17 @@ minecraft {
     mappings = "stable_39"
 }
 
+repositories {
+    mavenCentral()
+    maven {
+        url = "https://maven.mcmoddev.com"
+    }
+    maven {
+        url = "http://dvs1.progwml6.com/files/maven"
+    }
+}
+
+
 dependencies {
     deobfCompile "mezz.jei:jei_1.12.2:4.9.1.187:api"
     runtime "mezz.jei:jei_1.12.2:4.9.1.187"

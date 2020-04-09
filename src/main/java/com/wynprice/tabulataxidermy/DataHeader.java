@@ -3,10 +3,6 @@ package com.wynprice.tabulataxidermy;
 import com.google.gson.*;
 import io.netty.buffer.ByteBuf;
 import lombok.Value;
-import net.dumbcode.dumblibrary.client.gui.GuiConstants;
-import net.dumbcode.dumblibrary.client.gui.SelectListEntry;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.util.JsonUtils;
 import net.minecraftforge.fml.common.network.ByteBufUtils;
 

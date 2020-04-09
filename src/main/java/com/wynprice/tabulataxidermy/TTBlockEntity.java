@@ -4,8 +4,11 @@ import lombok.Getter;
 import lombok.Setter;
 import net.dumbcode.dumblibrary.client.model.tabula.TabulaModel;
 import net.dumbcode.dumblibrary.server.taxidermy.TaxidermyBlockEntity;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
 
 import javax.vecmath.Vector3f;
 import java.util.UUID;
@@ -57,5 +60,10 @@ public class TTBlockEntity extends TaxidermyBlockEntity {
         nbt.setFloat("Scale", this.scale);
 
         return super.writeToNBT(nbt);
+    }
+
+    @Override
+    public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newSate) {
+        return oldState.getBlock() != newSate.getBlock();
     }
 }

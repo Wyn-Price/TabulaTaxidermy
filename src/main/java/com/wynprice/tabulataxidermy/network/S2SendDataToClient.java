@@ -12,7 +12,6 @@ import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 
 import java.awt.image.BufferedImage;
-import java.util.Arrays;
 import java.util.UUID;
 
 public class S2SendDataToClient implements IMessage {

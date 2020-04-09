@@ -4,14 +4,12 @@ import com.wynprice.tabulataxidermy.DataHeader;
 import com.wynprice.tabulataxidermy.GuiTTBlock;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.client.Minecraft;
-import net.minecraftforge.fml.common.network.ByteBufUtils;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public class S6SendHeaders implements IMessage {
 

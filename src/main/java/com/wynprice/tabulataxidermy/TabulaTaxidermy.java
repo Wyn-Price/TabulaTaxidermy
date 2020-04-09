@@ -37,7 +37,7 @@ public class TabulaTaxidermy {
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
-         logger = event.getModLog();
+        logger = event.getModLog();
 
         SplitNetworkHandler.registerPacket(C0UploadData.class, new C0UploadData.Handler());
         NETWORK.registerMessage(new C1RequestDataForUUID.Handler(), C1RequestDataForUUID.class, 1, Side.SERVER);
@@ -48,6 +48,7 @@ public class TabulaTaxidermy {
         NETWORK.registerMessage(new S6SendHeaders.Handler(), S6SendHeaders.class, 6, Side.CLIENT);
         NETWORK.registerMessage(new C7SetBlockUUID.Handler(), C7SetBlockUUID.class, 7, Side.SERVER);
         NETWORK.registerMessage(new S8SyncBlockUUID.Handler(), S8SyncBlockUUID.class, 8, Side.CLIENT);
+        NETWORK.registerMessage(new C9ToggleHidden.Handler(), C9ToggleHidden.class, 9, Side.SERVER);
 
         GameRegistry.registerTileEntity(TTBlockEntity.class, new ResourceLocation(MODID, "taxi_block"));
 

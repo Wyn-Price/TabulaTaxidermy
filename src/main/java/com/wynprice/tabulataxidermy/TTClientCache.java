@@ -7,7 +7,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.util.ResourceLocation;
 import org.apache.commons.lang3.tuple.Pair;
-import sun.plugin.util.UIUtil;
 
 import java.awt.image.BufferedImage;
 import java.util.*;
@@ -28,6 +27,9 @@ public enum TTClientCache {
     }
 
     public Optional<Pair<ResourceLocation, TabulaModel>> get(UUID uuid) {
+        if(uuid.getLeastSignificantBits() == 0 && uuid.getMostSignificantBits() == 0) {
+            return Optional.empty();
+        }
         if(this.modelInfo.containsKey(uuid)) {
             return Optional.of(Pair.of(this.imageMap.get(uuid), this.modelInfo.get(uuid)));
         }

@@ -1,14 +1,8 @@
 package com.wynprice.tabulataxidermy;
 
-import com.wynprice.tabulataxidermy.network.C0UploadData;
-import com.wynprice.tabulataxidermy.network.C3SetBlockProperties;
-import com.wynprice.tabulataxidermy.network.C5RequestHeaders;
-import com.wynprice.tabulataxidermy.network.C7SetBlockUUID;
+import com.wynprice.tabulataxidermy.network.*;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.Value;
-import net.dumbcode.dumblibrary.client.gui.GuiConstants;
 import net.dumbcode.dumblibrary.client.gui.GuiDropdownBox;
 import net.dumbcode.dumblibrary.client.gui.GuiTaxidermy;
 import net.dumbcode.dumblibrary.client.gui.SelectListEntry;
@@ -28,7 +22,6 @@ import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 
 import javax.imageio.ImageIO;
 import javax.vecmath.Vector3f;
-import javax.xml.ws.RequestWrapper;
 import java.awt.*;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -76,21 +69,24 @@ public class GuiTTBlock extends GuiScreen implements GuiSlider.ISlider {
         this.modelLocation = new GuiTextField(0, Minecraft.getMinecraft().fontRenderer, this.width/2-150, this.height/4-10, 300, 20);
         this.textureLocation = new GuiTextField(1, Minecraft.getMinecraft().fontRenderer, this.width/2-150, this.height/4+20, 300, 20);
         this.addButton(new GuiButton(2, this.width/2-100, this.height/2-15, 200, 20, "Upload"));
-        this.addButton(new GuiButton(4, this.width/2-105, this.height-30, 100, 20, "Animate"));
-        this.addButton(new GuiButton(5, this.width/2+5, this.height-30, 100, 20, "Done"));
 
         int sliderWidth = 100;
+
+        this.addButton(new GuiButton(4, this.width/2 - 3*sliderWidth/2 - 10, this.height-30, sliderWidth, 20, "Animate"));
+        this.addButton(new GuiButton(5, this.width/2 - sliderWidth/2, this.height-30, sliderWidth, 20, "Toggle Hidden"));
+        this.addButton(new GuiButton(6, this.width/2 + sliderWidth/2 + 10, this.height-30, sliderWidth, 20, "Done"));
+
         Vector3f translation = this.blockEntity.getTranslation();
-        this.addButton(this.xPosition = new GuiSlider(6, this.width/2 - 3*sliderWidth/2 - 10, this.height/2+ 30, sliderWidth, 20, "X: ", "", -2, 2, translation.x, true, true, this));
-        this.addButton(this.yPosition = new GuiSlider(7, this.width/2 - sliderWidth/2, this.height/2 + 30, sliderWidth, 20, "Y: ", "", -2, 2, translation.y, true, true, this));
-        this.addButton(this.zPosition = new GuiSlider(8, this.width/2 + sliderWidth/2 + 10, this.height/2 + 30, sliderWidth, 20, "Z: ", "", -2, 2, translation.z, true, true, this));
+        this.addButton(this.xPosition = new GuiSlider(7, this.width/2 - 3*sliderWidth/2 - 10, this.height/2+ 30, sliderWidth, 20, "X: ", "", -2, 2, translation.x, true, true, this));
+        this.addButton(this.yPosition = new GuiSlider(8, this.width/2 - sliderWidth/2, this.height/2 + 30, sliderWidth, 20, "Y: ", "", -2, 2, translation.y, true, true, this));
+        this.addButton(this.zPosition = new GuiSlider(9, this.width/2 + sliderWidth/2 + 10, this.height/2 + 30, sliderWidth, 20, "Z: ", "", -2, 2, translation.z, true, true, this));
 
         Vector3f rotation = this.blockEntity.getRotation();
-        this.addButton(this.xRotation = new GuiSlider(9, this.width/2 - 3*sliderWidth/2 - 10, this.height/2 + 60, sliderWidth, 20, "X: ", "", -180, 180, rotation.x, true, true, this));
-        this.addButton(this.yRotation = new GuiSlider(10, this.width/2 - sliderWidth/2, this.height/2 + 60, sliderWidth, 20, "Y: ", "", -180, 180, rotation.y, true, true, this));
-        this.addButton(this.zRotation = new GuiSlider(11, this.width/2 + sliderWidth/2 + 10, this.height/2 + 60, sliderWidth, 20, "Z: ", "", -180, 180, rotation.z, true, true, this));
+        this.addButton(this.xRotation = new GuiSlider(10, this.width/2 - 3*sliderWidth/2 - 10, this.height/2 + 60, sliderWidth, 20, "X: ", "", -180, 180, rotation.x, true, true, this));
+        this.addButton(this.yRotation = new GuiSlider(11, this.width/2 - sliderWidth/2, this.height/2 + 60, sliderWidth, 20, "Y: ", "", -180, 180, rotation.y, true, true, this));
+        this.addButton(this.zRotation = new GuiSlider(12, this.width/2 + sliderWidth/2 + 10, this.height/2 + 60, sliderWidth, 20, "Z: ", "", -180, 180, rotation.z, true, true, this));
 
-        this.addButton(this.scaleSlider = new GuiSlider(12, this.width/2 - sliderWidth/2, this.height/2+7, sliderWidth, 20, "Scale: ", "", -5, 5, Math.log(this.blockEntity.getScale()) / Math.log(2), true, true, this));
+        this.addButton(this.scaleSlider = new GuiSlider(13, this.width/2 - sliderWidth/2, this.height/2+7, sliderWidth, 20, "Scale: ", "", -5, 5, Math.log(this.blockEntity.getScale()) / Math.log(2), true, true, this));
 
 
         this.modelLocation.setMaxStringLength(1000);
@@ -117,9 +113,6 @@ public class GuiTTBlock extends GuiScreen implements GuiSlider.ISlider {
                 System.out.println(e.getMessage());
             }
         }
-        if(button.id == 3) {
-            //transform
-        }
         if(button.id == 4) {
             TabulaModel model = this.blockEntity.getModel();
             ResourceLocation texture = this.blockEntity.getTexture();
@@ -128,6 +121,9 @@ public class GuiTTBlock extends GuiScreen implements GuiSlider.ISlider {
             }
         }
         if(button.id == 5) {
+            TabulaTaxidermy.NETWORK.sendToServer(new C9ToggleHidden(this.blockEntity.getPos()));
+        }
+        if(button.id == 6) {
             Minecraft.getMinecraft().displayGuiScreen(null);
         }
         super.actionPerformed(button);

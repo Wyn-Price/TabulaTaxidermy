@@ -1,6 +1,5 @@
 package com.wynprice.tabulataxidermy.network;
 
-import com.wynprice.tabulataxidermy.TTBlock;
 import com.wynprice.tabulataxidermy.TTBlockEntity;
 import com.wynprice.tabulataxidermy.TabulaTaxidermy;
 import io.netty.buffer.ByteBuf;

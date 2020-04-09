@@ -22,8 +22,9 @@ public class TTBlock extends Block {
 
     @Override
     public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
-        if(worldIn.isRemote) {
-            SidedExecutor.runClient(() -> () -> Minecraft.getMinecraft().displayGuiScreen(new GuiTTBlock(pos)));
+        TileEntity entity = worldIn.getTileEntity(pos);
+        if(worldIn.isRemote && entity instanceof TTBlockEntity) {
+            SidedExecutor.runClient(() -> () -> Minecraft.getMinecraft().displayGuiScreen(new GuiTTBlock((TTBlockEntity) entity)));
         }
         return true;
     }

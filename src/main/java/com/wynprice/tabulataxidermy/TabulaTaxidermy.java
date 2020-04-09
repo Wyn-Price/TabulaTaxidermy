@@ -1,8 +1,6 @@
 package com.wynprice.tabulataxidermy;
 
-import com.wynprice.tabulataxidermy.network.C0UploadData;
-import com.wynprice.tabulataxidermy.network.C1RequestDataForUUID;
-import com.wynprice.tabulataxidermy.network.S2SendDataToClient;
+import com.wynprice.tabulataxidermy.network.*;
 import net.dumbcode.dumblibrary.server.network.SplitNetworkHandler;
 import net.dumbcode.dumblibrary.server.utils.InjectedUtils;
 import net.minecraft.block.Block;
@@ -42,8 +40,14 @@ public class TabulaTaxidermy {
          logger = event.getModLog();
 
         SplitNetworkHandler.registerPacket(C0UploadData.class, new C0UploadData.Handler());
-        SplitNetworkHandler.registerPacket(S2SendDataToClient.class, new S2SendDataToClient.Handler());
         NETWORK.registerMessage(new C1RequestDataForUUID.Handler(), C1RequestDataForUUID.class, 1, Side.SERVER);
+        SplitNetworkHandler.registerPacket(S2SendDataToClient.class, new S2SendDataToClient.Handler());
+        NETWORK.registerMessage(new C3SetBlockProperties.Handler(), C3SetBlockProperties.class, 3, Side.SERVER);
+        NETWORK.registerMessage(new S4SyncBlockProperties.Handler(), S4SyncBlockProperties.class, 4, Side.CLIENT);
+        NETWORK.registerMessage(new C5RequestHeaders.Handler(), C5RequestHeaders.class, 5, Side.SERVER);
+        NETWORK.registerMessage(new S6SendHeaders.Handler(), S6SendHeaders.class, 6, Side.CLIENT);
+        NETWORK.registerMessage(new C7SetBlockUUID.Handler(), C7SetBlockUUID.class, 7, Side.SERVER);
+        NETWORK.registerMessage(new S8SyncBlockUUID.Handler(), S8SyncBlockUUID.class, 8, Side.CLIENT);
 
         GameRegistry.registerTileEntity(TTBlockEntity.class, new ResourceLocation(MODID, "taxi_block"));
 

@@ -3,7 +3,6 @@ package com.wynprice.tabulataxidermy;
 import net.dumbcode.dumblibrary.client.model.tabula.TabulaModel;
 import net.dumbcode.dumblibrary.client.model.tabula.TabulaModelRenderer;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GLAllocation;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.util.ResourceLocation;
@@ -15,10 +14,26 @@ public class TTBlockEntityRenderer extends TileEntitySpecialRenderer<TTBlockEnti
     @Override
     public void render(TTBlockEntity te, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
         GlStateManager.pushMatrix();
-        GlStateManager.translate(x + 0.5, y + 0.5, z + 0.5);
+        Vector3f t = te.getTranslation();
+        GlStateManager.translate(x + 0.5 + t.x, y + 0.5 + t.y, z + 0.5 + t.z);
+        GlStateManager.rotate(180, 1, 0, 0);
+        GlStateManager.translate(0, -1, 0);
 
-        TabulaModel model = te.getClientModelCache();
-        ResourceLocation location = te.getClientTextureCache();
+        Vector3f r = te.getRotation();
+        if(r.z != 0) {
+            GlStateManager.rotate(r.z, 0, 0, 1);
+        }
+        if(r.y != 0) {
+            GlStateManager.rotate(r.y, 0, 1, 0);
+        }
+        if(r.x != 0) {
+            GlStateManager.rotate(r.x, 1, 0, 0);
+        }
+
+        GlStateManager.scale(te.getScale(), te.getScale(), te.getScale());
+
+        TabulaModel model = te.getModel();
+        ResourceLocation location = te.getTexture();
 
         if(model != null && location != null) {
             Map<String, Vector3f> poseData = te.getPoseData();
@@ -37,8 +52,8 @@ public class TTBlockEntityRenderer extends TileEntitySpecialRenderer<TTBlockEnti
             model.renderBoxes(1/16F);
         } else if(te.getDataUUID() != null) {
             TTClientCache.INSTANCE.get(te.getDataUUID()).ifPresent(p -> {
-                te.setClientTextureCache(p.getLeft());
-                te.setClientModelCache(p.getRight());
+                te.setTexture(p.getLeft());
+                te.setModel(p.getRight());
             });
         }
 

@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import net.dumbcode.dumblibrary.client.model.tabula.TabulaModel;
 import net.dumbcode.dumblibrary.server.taxidermy.TaxidermyBlockEntity;
+import net.dumbcode.dumblibrary.server.utils.SidedExecutor;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
@@ -29,7 +30,7 @@ public class TTBlockEntity extends TaxidermyBlockEntity {
 
     public void setDataUUID(UUID dataUUID) {
         this.dataUUID = dataUUID;
-        if(this.world.isRemote) {
+        if(this.world != null && this.world.isRemote) {
             this.texture = null;
             this.model = null;
         }
@@ -38,7 +39,7 @@ public class TTBlockEntity extends TaxidermyBlockEntity {
     @Override
     public void readFromNBT(NBTTagCompound nbt) {
         super.readFromNBT(nbt);
-        this.dataUUID = nbt.getUniqueId("data");
+        this.setDataUUID(nbt.getUniqueId("data"));
 
         this.translation = new Vector3f(nbt.getFloat("TranslationX"), nbt.getFloat("TranslationY"), nbt.getFloat("TranslationZ"));
         this.rotation = new Vector3f(nbt.getFloat("RotationX"), nbt.getFloat("RotationY"), nbt.getFloat("RotationZ"));

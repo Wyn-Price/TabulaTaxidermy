@@ -4,9 +4,8 @@ import com.wynprice.tabulataxidermy.network.*;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.dumbcode.dumblibrary.client.gui.GuiDropdownBox;
-import net.dumbcode.dumblibrary.client.gui.GuiTaxidermy;
 import net.dumbcode.dumblibrary.client.gui.SelectListEntry;
-import net.dumbcode.dumblibrary.client.model.tabula.TabulaModel;
+import net.dumbcode.dumblibrary.client.gui.filebox.GuiFileArea;
 import net.dumbcode.dumblibrary.server.animation.TabulaUtils;
 import net.dumbcode.dumblibrary.server.network.SplitNetworkHandler;
 import net.dumbcode.dumblibrary.server.tabula.TabulaModelInformation;
@@ -14,17 +13,12 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.gui.GuiTextField;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.text.TextComponentString;
 import net.minecraftforge.fml.client.config.GuiSlider;
 import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
+import org.lwjgl.input.Mouse;
 
 import javax.imageio.ImageIO;
 import javax.vecmath.Vector3f;
-import java.awt.*;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.Transferable;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
@@ -38,8 +32,8 @@ public class GuiTTBlock extends GuiScreen implements GuiSlider.ISlider {
     @Getter
     private final TTBlockEntity blockEntity;
 
-    private GuiTextField modelLocation;
-    private GuiTextField textureLocation;
+    private GuiFileArea modelLocation;
+    private GuiFileArea textureLocation;
 
     private GuiDropdownBox<DataHeaderEntry> selectionBox;
 
@@ -66,8 +60,8 @@ public class GuiTTBlock extends GuiScreen implements GuiSlider.ISlider {
     public void initGui() {
         TabulaTaxidermy.NETWORK.sendToServer(new C5RequestHeaders());
         this.selectionBox = new GuiDropdownBox<>(this.width/2-175, this.height/4-40, 350, 20, 10, () -> this.entries);
-        this.modelLocation = new GuiTextField(0, Minecraft.getMinecraft().fontRenderer, this.width/2-150, this.height/4-10, 300, 20);
-        this.textureLocation = new GuiTextField(1, Minecraft.getMinecraft().fontRenderer, this.width/2-150, this.height/4+20, 300, 20);
+        this.modelLocation = this.addButton(new GuiFileArea(0, this.width/2-150, this.height/4-10, 300, 20, "Model File", (dir, name) -> name.endsWith(".tbl")));
+        this.textureLocation = this.addButton(new GuiFileArea(1, this.width/2-150, this.height/4+20, 300, 20, "Texture File", (dir, name) -> name.endsWith(".png")));
         this.addButton(new GuiButton(2, this.width/2-100, this.height/2-15, 200, 20, "Upload"));
 
         int sliderWidth = 100;
@@ -88,10 +82,6 @@ public class GuiTTBlock extends GuiScreen implements GuiSlider.ISlider {
 
         this.addButton(this.scaleSlider = new GuiSlider(13, this.width/2 - sliderWidth/2, this.height/2+7, sliderWidth, 20, "Scale: ", "", -5, 5, Math.log(this.blockEntity.getScale()) / Math.log(2), true, true, this));
 
-
-        this.modelLocation.setMaxStringLength(1000);
-        this.textureLocation.setMaxStringLength(1000);
-
         super.initGui();
     }
 
@@ -99,14 +89,17 @@ public class GuiTTBlock extends GuiScreen implements GuiSlider.ISlider {
     protected void actionPerformed(GuiButton button) throws IOException {
         if(button.id == 2) {
             try {
-                File f = new File(this.modelLocation.getText());
-                TabulaModelInformation information = TabulaUtils.getModelInformation(new FileInputStream(f));
-                try {
-                    BufferedImage image = ImageIO.read(new File(this.textureLocation.getText()));
-                    UUID uuid = UUID.randomUUID();
-                    SplitNetworkHandler.sendSplitMessage(new C0UploadData(this.blockEntity.getPos(), uuid, f.getName(), information, image), SimpleNetworkWrapper::sendToServer);
-                } catch (IOException e) {
-                    System.out.println(e.getMessage());
+                File model = this.modelLocation.getFile();
+                File texture = this.textureLocation.getFile();
+                if(model != null && texture != null) {
+                    TabulaModelInformation information = TabulaUtils.getModelInformation(new FileInputStream(model));
+                    try {
+                        BufferedImage image = ImageIO.read(texture);
+                        UUID uuid = UUID.randomUUID();
+                        SplitNetworkHandler.sendSplitMessage(new C0UploadData(this.blockEntity.getPos(), uuid, model.getName(), information, image), SimpleNetworkWrapper::sendToServer);
+                    } catch (IOException e) {
+                        System.out.println(e.getMessage());
+                    }
                 }
 
             } catch (IOException e) {
@@ -114,11 +107,11 @@ public class GuiTTBlock extends GuiScreen implements GuiSlider.ISlider {
             }
         }
         if(button.id == 4) {
-            TabulaModel model = this.blockEntity.getModel();
-            ResourceLocation texture = this.blockEntity.getTexture();
-            if(model != null && texture != null) {
-                Minecraft.getMinecraft().displayGuiScreen(new GuiTaxidermy(model, texture, new TextComponentString("Taxidermy Block"), this.blockEntity));
-            }
+//            TabulaModel model = this.blockEntity.getModel();
+//            ResourceLocation texture = this.blockEntity.getTexture();
+//            if(model != null && texture != null) {
+//                Minecraft.getMinecraft().displayGuiScreen(new GuiTaxidermy(model, texture, new TextComponentString("Taxidermy Block"), this.blockEntity));
+//            }
         }
         if(button.id == 5) {
             TabulaTaxidermy.NETWORK.sendToServer(new C9ToggleHidden(this.blockEntity.getPos()));
@@ -132,22 +125,22 @@ public class GuiTTBlock extends GuiScreen implements GuiSlider.ISlider {
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         this.drawDefaultBackground();
-        this.modelLocation.drawTextBox();
-        this.textureLocation.drawTextBox();
         this.selectionBox.render(mouseX, mouseY);
         super.drawScreen(mouseX, mouseY, partialTicks);
     }
 
     @Override
     protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
-        this.modelLocation.mouseClicked(mouseX, mouseY, mouseButton);
-        this.textureLocation.mouseClicked(mouseX, mouseY, mouseButton);
         this.selectionBox.mouseClicked(mouseX, mouseY, mouseButton);
         super.mouseClicked(mouseX, mouseY, mouseButton);
     }
 
     @Override
     public void handleMouseInput() throws IOException {
+        if(Mouse.getEventButtonState()) {
+            this.modelLocation.interrupt();
+            this.textureLocation.interrupt();
+        }
         this.selectionBox.handleMouseInput();
         super.handleMouseInput();
     }
@@ -159,32 +152,8 @@ public class GuiTTBlock extends GuiScreen implements GuiSlider.ISlider {
     }
 
     @Override
-    protected void keyTyped(char typedChar, int keyCode) throws IOException {
-        if(GuiScreen.isKeyComboCtrlV(keyCode)) {
-            this.convertCopiedFileToString();
-        }
-        this.modelLocation.textboxKeyTyped(typedChar, keyCode);
-        this.textureLocation.textboxKeyTyped(typedChar, keyCode);
-        super.keyTyped(typedChar, keyCode);
-    }
-
-    @Override
     public boolean doesGuiPauseGame() {
         return false;
-    }
-
-    private void convertCopiedFileToString() {
-        Transferable transferable = Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null);
-        if(transferable != null && transferable.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
-            try {
-                List<File> fileList = (List<File>) transferable.getTransferData(DataFlavor.javaFileListFlavor);
-                if(fileList.size() == 1) {
-                    GuiScreen.setClipboardString(fileList.get(0).getAbsolutePath());
-                }
-            } catch (Throwable ignored) {
-                //ignore
-            }
-        }
     }
 
     @Override
@@ -248,8 +217,9 @@ public class GuiTTBlock extends GuiScreen implements GuiSlider.ISlider {
         }
 
         @Override
-        public void onClicked(int relMouseX, int relMouseY, int mouseX, int mouseY) {
+        public boolean onClicked(int relMouseX, int relMouseY, int mouseX, int mouseY) {
             TabulaTaxidermy.NETWORK.sendToServer(new C7SetBlockUUID(blockEntity.getPos(), this.header.getUuid()));
+            return true;
         }
     }
 }

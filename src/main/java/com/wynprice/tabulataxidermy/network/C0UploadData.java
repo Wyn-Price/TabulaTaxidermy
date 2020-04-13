@@ -77,7 +77,7 @@ public class C0UploadData implements IMessage {
                 entity.markDirty();
                 ((TTBlockEntity) entity).syncToClient();
             }
-            File storage = world.getMinecraftServer().getFile("taxidermy_storage/" + message.uuid.toString().replaceAll("-", ""));
+            File storage = new File(world.getSaveHandler().getWorldDirectory(), "taxidermy_storage/" + message.uuid.toString().replaceAll("-", ""));
             if(!storage.exists()) {
                 try {
                     FileUtils.forceMkdir(storage);

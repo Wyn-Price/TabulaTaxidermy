@@ -45,7 +45,7 @@ public class C1RequestDataForUUID implements IMessage {
 
         @Override
         protected void handleMessage(C1RequestDataForUUID message, MessageContext ctx, World world, EntityPlayer player) {
-            File storage = world.getMinecraftServer().getFile("taxidermy_storage/" + message.uuid.toString().replaceAll("-", ""));
+            File storage = new File(world.getSaveHandler().getWorldDirectory(), "taxidermy_storage/" + message.uuid.toString().replaceAll("-", ""));
 
             TabulaModelInformation information = null;
             try {

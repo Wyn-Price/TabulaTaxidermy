@@ -34,7 +34,7 @@ public class C5RequestHeaders implements IMessage {
 
         @Override
         protected S6SendHeaders answer(C5RequestHeaders message, MessageContext ctx, World world, EntityPlayer player) {
-            File storage = world.getMinecraftServer().getFile("taxidermy_storage/");
+            File storage = new File(world.getSaveHandler().getWorldDirectory(), "taxidermy_storage");
             if(!storage.exists()) {
                 return null;
             }

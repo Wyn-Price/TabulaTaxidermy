@@ -5,8 +5,10 @@ import net.dumbcode.dumblibrary.server.network.SplitNetworkHandler;
 import net.dumbcode.dumblibrary.server.utils.InjectedUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
+import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
@@ -23,17 +25,24 @@ import org.apache.logging.log4j.Logger;
 public class TabulaTaxidermy {
     public static final String MODID = "tabulataxidermy";
     public static final String NAME = "Tabula Taxidermy";
-    public static final String VERSION = "0.1.0";
+    public static final String VERSION = "0.1.2";
 
     public static final SimpleNetworkWrapper NETWORK = new SimpleNetworkWrapper(MODID);
 
     @GameRegistry.ObjectHolder(TabulaTaxidermy.MODID + ":taxi_block")
     public static final Block BLOCK = InjectedUtils.injected();
 
-    @GameRegistry.ObjectHolder(TabulaTaxidermy.MODID + ":taxi_block")
+    @GameRegistry.ObjectHolder(TabulaTaxidermy.MODID + ":taxi_item")
     public static final Item ITEM = InjectedUtils.injected();
 
     private static Logger logger;
+
+    public static final CreativeTabs TAB = new CreativeTabs(MODID) {
+        @Override
+        public ItemStack createIcon() {
+            return new ItemStack(ITEM);
+        }
+    };
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
@@ -58,7 +67,7 @@ public class TabulaTaxidermy {
 
     @SubscribeEvent
     public static void registerBlock(RegistryEvent.Register<Block> event) {
-        event.getRegistry().register(new TTBlock(Material.IRON).setRegistryName("taxi_block").setTranslationKey(MODID + ".taxi_block"));
+        event.getRegistry().register(new TTBlock(Material.IRON).setRegistryName("taxi_block").setTranslationKey(MODID + ".taxi_block").setCreativeTab(TAB));
     }
 
     @SubscribeEvent

@@ -28,10 +28,8 @@ public class TTBlockEntityRenderer extends TileEntitySpecialRenderer<TTBlockEnti
         if(r.z != 0) {
             GlStateManager.rotate(r.z, 0, 0, 1);
         }
-        GlStateManager.translate(0, -1.5, 0);
-
-
         GlStateManager.scale(te.getScale(), te.getScale(), te.getScale());
+        GlStateManager.translate(0, -1.5, 0);
 
         TabulaModel model = te.getModel();
         ResourceLocation location = te.getTexture();
@@ -57,5 +55,10 @@ public class TTBlockEntityRenderer extends TileEntitySpecialRenderer<TTBlockEnti
         }
 
         GlStateManager.popMatrix();
+    }
+
+    @Override
+    public boolean isGlobalRenderer(TTBlockEntity te) {
+        return true;
     }
 }

@@ -13,6 +13,7 @@ import net.dumbcode.dumblibrary.server.network.SplitNetworkHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.GuiLabel;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TextComponentString;
@@ -116,6 +117,11 @@ public class GuiTTBlock extends GuiScreen implements GuiSlider.ISlider {
         super.drawScreen(mouseX, mouseY, partialTicks);
         this.modelSelectionBox.render(mouseX, mouseY);
         this.textureSelectionBox.render(mouseX, mouseY);
+
+        FontRenderer renderer = Minecraft.getMinecraft().fontRenderer;
+        this.drawCenteredString(renderer, "Model", this.width/2-85, this.height/4-60, GuiConstants.NICE_WHITE);
+        this.drawCenteredString(renderer, "Texture", this.width/2+85, this.height/4-60, GuiConstants.NICE_WHITE);
+
     }
 
     @Override

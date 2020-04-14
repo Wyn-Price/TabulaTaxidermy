@@ -1,6 +1,8 @@
 package com.wynprice.tabulataxidermy.network;
 
+import com.wynprice.tabulataxidermy.DataHandler;
 import com.wynprice.tabulataxidermy.TTBlockEntity;
+import com.wynprice.tabulataxidermy.TabulaTaxidermy;
 import io.netty.buffer.ByteBuf;
 import net.dumbcode.dumblibrary.server.network.WorldModificationsMessageHandler;
 import net.minecraft.entity.player.EntityPlayer;
@@ -12,23 +14,26 @@ import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 
 import java.util.UUID;
 
-public class S8SyncBlockUUID implements IMessage {
+public class C7S8SetBlockUUID implements IMessage {
 
     private BlockPos pos;
     private UUID uuid;
+    private DataHandler handler;
 
-    public S8SyncBlockUUID() {
+    public C7S8SetBlockUUID() {
     }
 
-    public S8SyncBlockUUID(BlockPos pos, UUID uuid) {
+    public C7S8SetBlockUUID(BlockPos pos, UUID uuid, DataHandler handler) {
         this.pos = pos;
         this.uuid = uuid;
+        this.handler = handler;
     }
 
     @Override
     public void fromBytes(ByteBuf buf) {
         this.pos = BlockPos.fromLong(buf.readLong());
         this.uuid = new UUID(buf.readLong(), buf.readLong());
+        this.handler = DataHandler.read(buf);
     }
 
     @Override
@@ -36,15 +41,19 @@ public class S8SyncBlockUUID implements IMessage {
         buf.writeLong(this.pos.toLong());
         buf.writeLong(this.uuid.getMostSignificantBits());
         buf.writeLong(this.uuid.getLeastSignificantBits());
+        DataHandler.write(buf, this.handler);
     }
 
-    public static class Handler extends WorldModificationsMessageHandler<S8SyncBlockUUID, IMessage> {
+    public static class Handler extends WorldModificationsMessageHandler<C7S8SetBlockUUID, IMessage> {
 
         @Override
-        protected void handleMessage(S8SyncBlockUUID message, MessageContext ctx, World world, EntityPlayer player) {
+        protected void handleMessage(C7S8SetBlockUUID message, MessageContext ctx, World world, EntityPlayer player) {
             TileEntity entity = world.getTileEntity(message.pos);
             if(entity instanceof TTBlockEntity) {
-                ((TTBlockEntity) entity).setDataUUID(message.uuid);
+                message.handler.applyTo((TTBlockEntity) entity, message.uuid);
+            }
+            if(!world.isRemote) {
+                TabulaTaxidermy.NETWORK.sendToDimension(new C7S8SetBlockUUID(message.pos, message.uuid, message.handler), world.provider.getDimension());
             }
         }
     }

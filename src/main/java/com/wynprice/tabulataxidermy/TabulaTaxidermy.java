@@ -46,8 +46,8 @@ public class TabulaTaxidermy {
         NETWORK.registerMessage(new S4SyncBlockProperties.Handler(), S4SyncBlockProperties.class, 4, Side.CLIENT);
         NETWORK.registerMessage(new C5RequestHeaders.Handler(), C5RequestHeaders.class, 5, Side.SERVER);
         NETWORK.registerMessage(new S6SendHeaders.Handler(), S6SendHeaders.class, 6, Side.CLIENT);
-        NETWORK.registerMessage(new C7SetBlockUUID.Handler(), C7SetBlockUUID.class, 7, Side.SERVER);
-        NETWORK.registerMessage(new S8SyncBlockUUID.Handler(), S8SyncBlockUUID.class, 8, Side.CLIENT);
+        NETWORK.registerMessage(new C7S8SetBlockUUID.Handler(), C7S8SetBlockUUID.class, 7, Side.SERVER);
+        NETWORK.registerMessage(new C7S8SetBlockUUID.Handler(), C7S8SetBlockUUID.class, 8, Side.CLIENT);
         NETWORK.registerMessage(new C9ToggleHidden.Handler(), C9ToggleHidden.class, 9, Side.SERVER);
 
         GameRegistry.registerTileEntity(TTBlockEntity.class, new ResourceLocation(MODID, "taxi_block"));

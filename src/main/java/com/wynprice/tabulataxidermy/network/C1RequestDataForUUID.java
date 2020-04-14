@@ -1,5 +1,6 @@
 package com.wynprice.tabulataxidermy.network;
 
+import com.wynprice.tabulataxidermy.DataHandler;
 import com.wynprice.tabulataxidermy.TabulaTaxidermy;
 import io.netty.buffer.ByteBuf;
 import net.dumbcode.dumblibrary.server.animation.TabulaUtils;
@@ -21,51 +22,36 @@ import java.util.UUID;
 public class C1RequestDataForUUID implements IMessage {
 
     private UUID uuid;
+    private DataHandler<?> dataHandler;
 
     public C1RequestDataForUUID() {
     }
 
-    public C1RequestDataForUUID(UUID uuid) {
+    public C1RequestDataForUUID(UUID uuid, DataHandler<?> dataHandler) {
         this.uuid = uuid;
-
+        this.dataHandler = dataHandler;
     }
 
     @Override
     public void fromBytes(ByteBuf buf) {
         this.uuid = new UUID(buf.readLong(), buf.readLong());
+        this.dataHandler = DataHandler.read(buf);
     }
 
     @Override
     public void toBytes(ByteBuf buf) {
         buf.writeLong(this.uuid.getMostSignificantBits());
         buf.writeLong(this.uuid.getLeastSignificantBits());
+        DataHandler.write(buf, this.dataHandler);
     }
 
     public static class Handler extends WorldModificationsMessageHandler<C1RequestDataForUUID, C1RequestDataForUUID> {
 
         @Override
         protected void handleMessage(C1RequestDataForUUID message, MessageContext ctx, World world, EntityPlayer player) {
-            File storage = new File(world.getSaveHandler().getWorldDirectory(), "taxidermy_storage/" + message.uuid.toString().replaceAll("-", ""));
-
-            TabulaModelInformation information = null;
-            try {
-                File model = new File(storage, "tabula_model.tbl");
-                information = TabulaUtils.getModelInformation(new FileInputStream(model));
-            } catch (IOException e) {
-                TabulaTaxidermy.getLogger().error("Unable to load model file", e);
-            }
-
-            BufferedImage image = null;
-            try {
-                File texture = new File(storage, "texture.png");
-                image = ImageIO.read(texture);
-            } catch (IOException e) {
-                TabulaTaxidermy.getLogger().error("Unable to save texture file", e);
-            }
-
-            if(information != null && image != null) {
-                SplitNetworkHandler.sendSplitMessage(new S2SendDataToClient(message.uuid, information, image), (wrapper, m) -> wrapper.sendToDimension(m, world.provider.getDimension()));
-            }
+            message.dataHandler.createHandler(world, message.uuid).ifPresent(h ->
+                SplitNetworkHandler.sendSplitMessage(new S2SendDataToClient(message.uuid, h), (wrapper, m) -> wrapper.sendToDimension(m, world.provider.getDimension()))
+            );
         }
     }
 }

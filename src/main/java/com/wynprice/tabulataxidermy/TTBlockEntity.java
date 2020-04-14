@@ -18,7 +18,8 @@ import java.util.UUID;
 @Setter
 public class TTBlockEntity extends TaxidermyBlockEntity {
 
-    private UUID dataUUID = new UUID(0, 0);
+    private UUID modelUUID = new UUID(0, 0);
+    private UUID textureUUID = new UUID(0, 0);
 
     private Vector3f translation = new Vector3f();
     private Vector3f rotation = new Vector3f();
@@ -28,18 +29,25 @@ public class TTBlockEntity extends TaxidermyBlockEntity {
     private ResourceLocation texture;
     private TabulaModel model;
 
-    public void setDataUUID(UUID dataUUID) {
-        this.dataUUID = dataUUID;
+    public void setModelUUID(UUID modelUUID) {
+        this.modelUUID = modelUUID;
+        if(this.world != null && this.world.isRemote) {
+            this.model = null;
+        }
+    }
+
+    public void setTextureUUID(UUID textureUUID) {
+        this.textureUUID = textureUUID;
         if(this.world != null && this.world.isRemote) {
             this.texture = null;
-            this.model = null;
         }
     }
 
     @Override
     public void readFromNBT(NBTTagCompound nbt) {
         super.readFromNBT(nbt);
-        this.setDataUUID(nbt.getUniqueId("data"));
+        this.setModelUUID(nbt.getUniqueId("Model"));
+        this.setTextureUUID(nbt.getUniqueId("Texture"));
 
         this.translation = new Vector3f(nbt.getFloat("TranslationX"), nbt.getFloat("TranslationY"), nbt.getFloat("TranslationZ"));
         this.rotation = new Vector3f(nbt.getFloat("RotationX"), nbt.getFloat("RotationY"), nbt.getFloat("RotationZ"));
@@ -48,7 +56,8 @@ public class TTBlockEntity extends TaxidermyBlockEntity {
 
     @Override
     public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
-        nbt.setUniqueId("data", this.dataUUID);
+        nbt.setUniqueId("Model", this.modelUUID);
+        nbt.setUniqueId("Texture", this.textureUUID);
 
         nbt.setFloat("TranslationX", this.translation.x);
         nbt.setFloat("TranslationY", this.translation.z);

@@ -50,11 +50,9 @@ public class TTBlockEntityRenderer extends TileEntitySpecialRenderer<TTBlockEnti
 
             Minecraft.getMinecraft().renderEngine.bindTexture(location);
             model.renderBoxes(1/16F);
-        } else if(te.getDataUUID() != null) {
-            TTClientCache.INSTANCE.get(te.getDataUUID()).ifPresent(p -> {
-                te.setTexture(p.getLeft());
-                te.setModel(p.getRight());
-            });
+        } else {
+            TTClientCache.MODEL.get(te.getModelUUID()).ifPresent(te::setModel);
+            TTClientCache.TEXTURE.get(te.getTextureUUID()).ifPresent(te::setTexture);
         }
 
         GlStateManager.popMatrix();

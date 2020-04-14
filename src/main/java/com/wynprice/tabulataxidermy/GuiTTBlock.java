@@ -4,24 +4,24 @@ import com.wynprice.tabulataxidermy.network.*;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.dumbcode.dumblibrary.client.gui.GuiDropdownBox;
+import net.dumbcode.dumblibrary.client.gui.GuiTaxidermy;
 import net.dumbcode.dumblibrary.client.gui.SelectListEntry;
+import net.dumbcode.dumblibrary.client.gui.filebox.FileDropboxFrame;
 import net.dumbcode.dumblibrary.client.gui.filebox.GuiFileArea;
-import net.dumbcode.dumblibrary.server.animation.TabulaUtils;
+import net.dumbcode.dumblibrary.client.model.tabula.TabulaModel;
 import net.dumbcode.dumblibrary.server.network.SplitNetworkHandler;
-import net.dumbcode.dumblibrary.server.tabula.TabulaModelInformation;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.text.TextComponentString;
 import net.minecraftforge.fml.client.config.GuiSlider;
 import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import org.lwjgl.input.Mouse;
 
-import javax.imageio.ImageIO;
 import javax.vecmath.Vector3f;
-import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,10 +32,10 @@ public class GuiTTBlock extends GuiScreen implements GuiSlider.ISlider {
     @Getter
     private final TTBlockEntity blockEntity;
 
-    private GuiFileArea modelLocation;
-    private GuiFileArea textureLocation;
+    private FileDropboxFrame dropboxFrame;
 
-    private GuiDropdownBox<DataHeaderEntry> selectionBox;
+    private GuiDropdownBox<SelectListEntry> modelSelectionBox;
+    private GuiDropdownBox<SelectListEntry> textureSelectionBox;
 
     private GuiSlider xPosition;
     private GuiSlider yPosition;
@@ -50,7 +50,10 @@ public class GuiTTBlock extends GuiScreen implements GuiSlider.ISlider {
     private boolean slidersDirty = false;
 
     @Getter
-    private final List<DataHeaderEntry> entries = new ArrayList<>();
+    private final List<SelectListEntry> textureEntries = new ArrayList<>();
+
+    @Getter
+    private final List<SelectListEntry> modelEntries = new ArrayList<>();
 
     public GuiTTBlock(TTBlockEntity blockEntity) {
         this.blockEntity = blockEntity;
@@ -59,10 +62,9 @@ public class GuiTTBlock extends GuiScreen implements GuiSlider.ISlider {
     @Override
     public void initGui() {
         TabulaTaxidermy.NETWORK.sendToServer(new C5RequestHeaders());
-        this.selectionBox = new GuiDropdownBox<>(this.width/2-175, this.height/4-40, 350, 20, 10, () -> this.entries);
-        this.modelLocation = this.addButton(new GuiFileArea(0, this.width/2-150, this.height/4-10, 300, 20, "Model File", (dir, name) -> name.endsWith(".tbl")));
-        this.textureLocation = this.addButton(new GuiFileArea(1, this.width/2-150, this.height/4+20, 300, 20, "Texture File", (dir, name) -> name.endsWith(".png")));
-        this.addButton(new GuiButton(2, this.width/2-100, this.height/2-15, 200, 20, "Upload"));
+
+        this.modelSelectionBox = new GuiDropdownBox<>(this.width/2-175, this.height/4-40, 170, 20, this.height/80, () -> this.modelEntries);
+        this.textureSelectionBox = new GuiDropdownBox<>(this.width/2+5, this.height/4-40, 170, 20, this.height/80, () -> this.textureEntries);
 
         int sliderWidth = 100;
 
@@ -87,31 +89,12 @@ public class GuiTTBlock extends GuiScreen implements GuiSlider.ISlider {
 
     @Override
     protected void actionPerformed(GuiButton button) throws IOException {
-        if(button.id == 2) {
-            try {
-                File model = this.modelLocation.getFile();
-                File texture = this.textureLocation.getFile();
-                if(model != null && texture != null) {
-                    TabulaModelInformation information = TabulaUtils.getModelInformation(new FileInputStream(model));
-                    try {
-                        BufferedImage image = ImageIO.read(texture);
-                        UUID uuid = UUID.randomUUID();
-                        SplitNetworkHandler.sendSplitMessage(new C0UploadData(this.blockEntity.getPos(), uuid, model.getName(), information, image), SimpleNetworkWrapper::sendToServer);
-                    } catch (IOException e) {
-                        System.out.println(e.getMessage());
-                    }
-                }
-
-            } catch (IOException e) {
-                System.out.println(e.getMessage());
-            }
-        }
         if(button.id == 4) {
-//            TabulaModel model = this.blockEntity.getModel();
-//            ResourceLocation texture = this.blockEntity.getTexture();
-//            if(model != null && texture != null) {
-//                Minecraft.getMinecraft().displayGuiScreen(new GuiTaxidermy(model, texture, new TextComponentString("Taxidermy Block"), this.blockEntity));
-//            }
+            TabulaModel model = this.blockEntity.getModel();
+            ResourceLocation texture = this.blockEntity.getTexture();
+            if(model != null && texture != null) {
+                Minecraft.getMinecraft().displayGuiScreen(new GuiTaxidermy(model, texture, new TextComponentString("Taxidermy Block"), this.blockEntity));
+            }
         }
         if(button.id == 5) {
             TabulaTaxidermy.NETWORK.sendToServer(new C9ToggleHidden(this.blockEntity.getPos()));
@@ -125,29 +108,33 @@ public class GuiTTBlock extends GuiScreen implements GuiSlider.ISlider {
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         this.drawDefaultBackground();
-        this.selectionBox.render(mouseX, mouseY);
         super.drawScreen(mouseX, mouseY, partialTicks);
+        this.modelSelectionBox.render(mouseX, mouseY);
+        this.textureSelectionBox.render(mouseX, mouseY);
     }
 
     @Override
     protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
-        this.selectionBox.mouseClicked(mouseX, mouseY, mouseButton);
+        this.modelSelectionBox.mouseClicked(mouseX, mouseY, mouseButton);
+        this.textureSelectionBox.mouseClicked(mouseX, mouseY, mouseButton);
         super.mouseClicked(mouseX, mouseY, mouseButton);
     }
 
     @Override
     public void handleMouseInput() throws IOException {
-        if(Mouse.getEventButtonState()) {
-            this.modelLocation.interrupt();
-            this.textureLocation.interrupt();
+        if(Mouse.getEventButtonState() && this.dropboxFrame != null) {
+            this.dropboxFrame.dispose();
+            this.dropboxFrame = null;
         }
-        this.selectionBox.handleMouseInput();
+        this.modelSelectionBox.handleMouseInput();
+        this.textureSelectionBox.handleMouseInput();
         super.handleMouseInput();
     }
 
     @Override
     public void handleKeyboardInput() throws IOException {
-        this.selectionBox.handleKeyboardInput();
+        this.modelSelectionBox.handleKeyboardInput();
+        this.textureSelectionBox.handleKeyboardInput();
         super.handleKeyboardInput();
     }
 
@@ -165,6 +152,19 @@ public class GuiTTBlock extends GuiScreen implements GuiSlider.ISlider {
                 new Vector3f((float) this.xRotation.getValue(), (float) this.yRotation.getValue(), (float) this.zRotation.getValue()),
                 (float) Math.pow(2, this.scaleSlider.getValue())
             ));
+        }
+
+        for (SelectListEntry entry : this.modelEntries) {
+            if(entry instanceof DataHeaderEntry && ((DataHeaderEntry) entry).header.getUuid().equals(this.blockEntity.getModelUUID())) {
+                this.modelSelectionBox.setActive(entry);
+                break;
+            }
+        }
+        for (SelectListEntry entry : this.textureEntries) {
+            if(entry instanceof DataHeaderEntry && ((DataHeaderEntry) entry).header.getUuid().equals(this.blockEntity.getTextureUUID())) {
+                this.textureSelectionBox.setActive(entry);
+                break;
+            }
         }
         super.updateScreen();
     }
@@ -192,16 +192,19 @@ public class GuiTTBlock extends GuiScreen implements GuiSlider.ISlider {
         this.scaleSlider.setValue(Math.log(scale) / Math.log(2));
     }
 
-    public void setList(List<DataHeader> headers) {
-        this.entries.clear();
+    public void setList(DataHandler handler, List<DataHeader> headers) {
+        List<SelectListEntry> entries = (handler == DataHandler.TEXTURE ? this.textureEntries : this.modelEntries);
+        entries.clear();
+        entries.add(new UploadEntryEntry(handler));
         for (DataHeader header : headers) {
-            this.entries.add(new DataHeaderEntry(header));
+            entries.add(new DataHeaderEntry(handler, header));
         }
     }
 
     @RequiredArgsConstructor
     private class DataHeaderEntry implements SelectListEntry {
 
+        private final DataHandler<?> handler;
         private final DataHeader header;
 
         @Override
@@ -218,8 +221,43 @@ public class GuiTTBlock extends GuiScreen implements GuiSlider.ISlider {
 
         @Override
         public boolean onClicked(int relMouseX, int relMouseY, int mouseX, int mouseY) {
-            TabulaTaxidermy.NETWORK.sendToServer(new C7SetBlockUUID(blockEntity.getPos(), this.header.getUuid()));
+            TabulaTaxidermy.NETWORK.sendToServer(new C7S8SetBlockUUID(blockEntity.getPos(), this.header.getUuid(), this.handler));
             return true;
+        }
+    }
+
+    private class UploadEntryEntry implements SelectListEntry {
+
+        private final DataHandler<?> handler;
+        private File file;
+
+        private UploadEntryEntry(DataHandler<?> handler) {
+            this.handler = handler;
+        }
+
+        @Override
+        public String getSearch() {
+            return "";
+        }
+
+        @Override
+        public void draw(int x, int y, int mouseX, int mouseY) {
+            String text = this.file == null ? "Upload new file" : "Click to upload " + this.file.getName();
+            Minecraft.getMinecraft().fontRenderer.drawString(text, x + 3, y + 4, 0xFFFAFAFA);
+        }
+
+        @Override
+        public boolean onClicked(int relMouseX, int relMouseY, int mouseX, int mouseY) {
+            if(this.file != null) {
+                dropboxFrame = null;
+                this.handler.createHandler(this.file).ifPresent(h ->
+                    SplitNetworkHandler.sendSplitMessage(new C0UploadData(blockEntity.getPos(), UUID.randomUUID(), this.file.getName(), h), SimpleNetworkWrapper::sendToServer)
+                );
+                this.file = null;
+            } else {
+                dropboxFrame = new FileDropboxFrame("Upload " + this.handler.getTypeName(), (dir, name) -> name.endsWith(this.handler.getExtension()), f -> this.file = f);
+            }
+            return false;
         }
     }
 }

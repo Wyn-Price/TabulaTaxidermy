@@ -1,5 +1,6 @@
 package com.wynprice.tabulataxidermy.network;
 
+import com.wynprice.tabulataxidermy.DataHandler;
 import com.wynprice.tabulataxidermy.DataHeader;
 import com.wynprice.tabulataxidermy.GuiTTBlock;
 import io.netty.buffer.ByteBuf;
@@ -13,17 +14,20 @@ import java.util.List;
 
 public class S6SendHeaders implements IMessage {
 
+    private DataHandler<?> handler;
     private List<DataHeader> headers;
 
     public S6SendHeaders() {
     }
 
-    public S6SendHeaders(List<DataHeader> headers) {
+    public S6SendHeaders(DataHandler<?> handler, List<DataHeader> headers) {
+        this.handler = handler;
         this.headers = headers;
     }
 
     @Override
     public void fromBytes(ByteBuf buf) {
+        this.handler = DataHandler.read(buf);
         this.headers = new ArrayList<>();
         int size = buf.readShort();
         for (int i = 0; i < size; i++) {
@@ -33,6 +37,7 @@ public class S6SendHeaders implements IMessage {
 
     @Override
     public void toBytes(ByteBuf buf) {
+        DataHandler.write(buf, this.handler);
         buf.writeShort(this.headers.size());
         for (DataHeader header : this.headers) {
             DataHeader.writeToBuf(header, buf);
@@ -44,7 +49,7 @@ public class S6SendHeaders implements IMessage {
         @Override
         public IMessage onMessage(S6SendHeaders message, MessageContext ctx) {
             if(Minecraft.getMinecraft().currentScreen instanceof GuiTTBlock) {
-                ((GuiTTBlock) Minecraft.getMinecraft().currentScreen).setList(message.headers);
+                ((GuiTTBlock) Minecraft.getMinecraft().currentScreen).setList(message.handler, message.headers);
             }
             return null;
         }

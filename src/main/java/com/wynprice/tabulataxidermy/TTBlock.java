@@ -1,7 +1,7 @@
 package com.wynprice.tabulataxidermy;
 
 import net.dumbcode.dumblibrary.server.utils.SidedExecutor;
-import net.minecraft.block.Block;
+import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.PropertyBool;
 import net.minecraft.block.state.BlockStateContainer;
@@ -19,7 +19,7 @@ import net.minecraft.world.World;
 
 import javax.annotation.Nullable;
 
-public class TTBlock extends Block {
+public class TTBlock extends BlockContainer {
 
     public static final PropertyBool HIDDEN = PropertyBool.create("hidden");
 
@@ -48,11 +48,6 @@ public class TTBlock extends Block {
     }
 
     @Override
-    public boolean isFullBlock(IBlockState state) {
-        return false;
-    }
-
-    @Override
     public boolean isFullCube(IBlockState state) {
         return false;
     }
@@ -75,7 +70,7 @@ public class TTBlock extends Block {
 
     @Nullable
     @Override
-    public TileEntity createTileEntity(World world, IBlockState state) {
+    public TileEntity createNewTileEntity(World worldIn, int meta) {
         return new TTBlockEntity();
     }
 

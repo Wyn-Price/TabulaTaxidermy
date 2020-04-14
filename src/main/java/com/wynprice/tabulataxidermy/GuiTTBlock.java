@@ -3,11 +3,11 @@ package com.wynprice.tabulataxidermy;
 import com.wynprice.tabulataxidermy.network.*;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import net.dumbcode.dumblibrary.client.gui.GuiConstants;
 import net.dumbcode.dumblibrary.client.gui.GuiDropdownBox;
 import net.dumbcode.dumblibrary.client.gui.GuiTaxidermy;
 import net.dumbcode.dumblibrary.client.gui.SelectListEntry;
 import net.dumbcode.dumblibrary.client.gui.filebox.FileDropboxFrame;
-import net.dumbcode.dumblibrary.client.gui.filebox.GuiFileArea;
 import net.dumbcode.dumblibrary.client.model.tabula.TabulaModel;
 import net.dumbcode.dumblibrary.server.network.SplitNetworkHandler;
 import net.minecraft.client.Minecraft;
@@ -47,6 +47,9 @@ public class GuiTTBlock extends GuiScreen implements GuiSlider.ISlider {
 
     private GuiSlider scaleSlider;
 
+    private GuiSlider[] allSliders;
+    private int selectedIndex = -1;
+
     private boolean slidersDirty = false;
 
     @Getter
@@ -73,16 +76,18 @@ public class GuiTTBlock extends GuiScreen implements GuiSlider.ISlider {
         this.addButton(new GuiButton(6, this.width/2 + sliderWidth/2 + 10, this.height-30, sliderWidth, 20, "Done"));
 
         Vector3f translation = this.blockEntity.getTranslation();
-        this.addButton(this.xPosition = new GuiSlider(7, this.width/2 - 3*sliderWidth/2 - 10, this.height/2+ 30, sliderWidth, 20, "X: ", "", -2, 2, translation.x, true, true, this));
-        this.addButton(this.yPosition = new GuiSlider(8, this.width/2 - sliderWidth/2, this.height/2 + 30, sliderWidth, 20, "Y: ", "", -2, 2, translation.y, true, true, this));
-        this.addButton(this.zPosition = new GuiSlider(9, this.width/2 + sliderWidth/2 + 10, this.height/2 + 30, sliderWidth, 20, "Z: ", "", -2, 2, translation.z, true, true, this));
+        this.xPosition = this.addButton(new GuiSlider(7, this.width/2 - 3*sliderWidth/2 - 10, this.height/2+ 30, sliderWidth, 20, "X: ", "", -2, 2, translation.x, true, true, this));
+        this.yPosition = this.addButton(new GuiSlider(8, this.width/2 - sliderWidth/2, this.height/2 + 30, sliderWidth, 20, "Y: ", "", -2, 2, translation.y, true, true, this));
+        this.zPosition = this.addButton(new GuiSlider(9, this.width/2 + sliderWidth/2 + 10, this.height/2 + 30, sliderWidth, 20, "Z: ", "", -2, 2, translation.z, true, true, this));
 
         Vector3f rotation = this.blockEntity.getRotation();
-        this.addButton(this.xRotation = new GuiSlider(10, this.width/2 - 3*sliderWidth/2 - 10, this.height/2 + 60, sliderWidth, 20, "X: ", "", -180, 180, rotation.x, true, true, this));
-        this.addButton(this.yRotation = new GuiSlider(11, this.width/2 - sliderWidth/2, this.height/2 + 60, sliderWidth, 20, "Y: ", "", -180, 180, rotation.y, true, true, this));
-        this.addButton(this.zRotation = new GuiSlider(12, this.width/2 + sliderWidth/2 + 10, this.height/2 + 60, sliderWidth, 20, "Z: ", "", -180, 180, rotation.z, true, true, this));
+        this.xRotation = this.addButton(new GuiSlider(10, this.width/2 - 3*sliderWidth/2 - 10, this.height/2 + 60, sliderWidth, 20, "X: ", "", -180, 180, rotation.x, true, true, this));
+        this.yRotation = this.addButton(new GuiSlider(11, this.width/2 - sliderWidth/2, this.height/2 + 60, sliderWidth, 20, "Y: ", "", -180, 180, rotation.y, true, true, this));
+        this.zRotation = this.addButton(new GuiSlider(12, this.width/2 + sliderWidth/2 + 10, this.height/2 + 60, sliderWidth, 20, "Z: ", "", -180, 180, rotation.z, true, true, this));
 
-        this.addButton(this.scaleSlider = new GuiSlider(13, this.width/2 - sliderWidth/2, this.height/2+7, sliderWidth, 20, "Scale: ", "", -5, 5, Math.log(this.blockEntity.getScale()) / Math.log(2), true, true, this));
+        this.scaleSlider = this.addButton(new GuiSlider(13, this.width/2 - sliderWidth/2, this.height/2+7, sliderWidth, 20, "Scale: ", "", -5, 5, Math.log(this.blockEntity.getScale()) / Math.log(2), true, true, this));
+
+        this.allSliders = new GuiSlider[]{ this.xPosition, this.yPosition, this.zPosition, this.xRotation, this.yRotation, this.zRotation, this.scaleSlider };
 
         super.initGui();
     }
@@ -117,7 +122,19 @@ public class GuiTTBlock extends GuiScreen implements GuiSlider.ISlider {
     protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
         this.modelSelectionBox.mouseClicked(mouseX, mouseY, mouseButton);
         this.textureSelectionBox.mouseClicked(mouseX, mouseY, mouseButton);
+        for (int i = 0; i < this.allSliders.length; i++) {
+            if(GuiConstants.mouseOn(this.allSliders[i], mouseX, mouseY)) {
+                this.selectedIndex = i;
+                break;
+            }
+        }
         super.mouseClicked(mouseX, mouseY, mouseButton);
+    }
+
+    @Override
+    protected void mouseReleased(int mouseX, int mouseY, int state) {
+        this.selectedIndex = -1;
+        super.mouseReleased(mouseX, mouseY, state);
     }
 
     @Override
@@ -181,15 +198,29 @@ public class GuiTTBlock extends GuiScreen implements GuiSlider.ISlider {
     }
 
     public void setProperties(Vector3f translation, Vector3f angles, float scale) {
-        this.xPosition.setValue(translation.x);
-        this.yPosition.setValue(translation.y);
-        this.zPosition.setValue(translation.z);
+        if(this.selectedIndex != 0) {
+            this.xPosition.setValue(translation.x);
+        }
+        if(this.selectedIndex != 1) {
+            this.yPosition.setValue(translation.y);
+        }
+        if(this.selectedIndex != 2) {
+            this.zPosition.setValue(translation.z);
+        }
 
-        this.xRotation.setValue(angles.x);
-        this.yRotation.setValue(angles.y);
-        this.zRotation.setValue(angles.z);
+        if(this.selectedIndex != 3) {
+            this.xRotation.setValue(angles.x);
+        }
+        if(this.selectedIndex != 4) {
+            this.yRotation.setValue(angles.y);
+        }
+        if(this.selectedIndex != 5) {
+            this.zRotation.setValue(angles.z);
+        }
 
-        this.scaleSlider.setValue(Math.log(scale) / Math.log(2));
+        if(this.selectedIndex != 6) {
+            this.scaleSlider.setValue(Math.log(scale) / Math.log(2));
+        }
     }
 
     public void setList(DataHandler handler, List<DataHeader> headers) {

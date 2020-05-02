@@ -134,7 +134,7 @@ public class DataHandler<O> {
 
     public Optional<Handler<O>> createHandler(File file) {
         try {
-            return Optional.of(new Handler<>(this.fileDeseralizer.apply(new FileInputStream(file)), this));
+            return Optional.ofNullable(this.fileDeseralizer.apply(new FileInputStream(file))).map(o -> new Handler<>(o, this));
         } catch (IOException e) {
             TabulaTaxidermy.getLogger().error("Unable to read file '" + file.getAbsolutePath() + "'", e);
         }

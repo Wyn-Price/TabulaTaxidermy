@@ -3,6 +3,7 @@ package com.wynprice.tabulataxidermy;
 import com.wynprice.tabulataxidermy.network.*;
 import net.dumbcode.dumblibrary.server.network.SplitNetworkHandler;
 import net.dumbcode.dumblibrary.server.utils.InjectedUtils;
+import net.dumbcode.dumblibrary.server.utils.SidedExecutor;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.creativetab.CreativeTabs;
@@ -18,6 +19,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 import org.apache.logging.log4j.Logger;
 
 @Mod(modid = TabulaTaxidermy.MODID, name = TabulaTaxidermy.NAME, version = TabulaTaxidermy.VERSION)
@@ -25,7 +27,7 @@ import org.apache.logging.log4j.Logger;
 public class TabulaTaxidermy {
     public static final String MODID = "tabulataxidermy";
     public static final String NAME = "Tabula Taxidermy";
-    public static final String VERSION = "0.1.2";
+    public static final String VERSION = "0.1.3";
 
     public static final SimpleNetworkWrapper NETWORK = new SimpleNetworkWrapper(MODID);
 
@@ -61,8 +63,12 @@ public class TabulaTaxidermy {
 
         GameRegistry.registerTileEntity(TTBlockEntity.class, new ResourceLocation(MODID, "taxi_block"));
 
-        ClientRegistry.bindTileEntitySpecialRenderer(TTBlockEntity.class, new TTBlockEntityRenderer());
+        SidedExecutor.runClient(() -> TabulaTaxidermy::registerTESR);
+    }
 
+    @SideOnly(Side.CLIENT)
+    private static void registerTESR() {
+        ClientRegistry.bindTileEntitySpecialRenderer(TTBlockEntity.class, new TTBlockEntityRenderer());
     }
 
     @SubscribeEvent

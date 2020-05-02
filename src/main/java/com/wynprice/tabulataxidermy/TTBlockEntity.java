@@ -47,6 +47,7 @@ public class TTBlockEntity extends TaxidermyBlockEntity {
     @Override
     public void readFromNBT(NBTTagCompound nbt) {
         super.readFromNBT(nbt);
+
         this.setModelUUID(nbt.getUniqueId("Model"));
         this.setTextureUUID(nbt.getUniqueId("Texture"));
 
@@ -65,8 +66,8 @@ public class TTBlockEntity extends TaxidermyBlockEntity {
         nbt.setFloat("TranslationZ", this.translation.y);
 
         nbt.setFloat("RotationX", this.rotation.x);
-        nbt.setFloat("RotationY", this.rotation.z);
-        nbt.setFloat("RotationZ", this.rotation.y);
+        nbt.setFloat("RotationY", this.rotation.y);
+        nbt.setFloat("RotationZ", this.rotation.z);
 
         nbt.setFloat("Scale", this.scale);
 

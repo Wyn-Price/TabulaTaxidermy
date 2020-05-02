@@ -17,6 +17,8 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
 import javax.annotation.Nullable;
 
@@ -33,9 +35,14 @@ public class TTBlock extends BlockContainer {
     public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
         TileEntity entity = worldIn.getTileEntity(pos);
         if(worldIn.isRemote && entity instanceof TTBlockEntity) {
-            SidedExecutor.runClient(() -> () -> Minecraft.getMinecraft().displayGuiScreen(new GuiTTBlock((TTBlockEntity) entity)));
+            this.displayGui((TTBlockEntity) entity);
         }
         return true;
+    }
+
+    @SideOnly(Side.CLIENT)
+    private void displayGui(TTBlockEntity entity) {
+        Minecraft.getMinecraft().displayGuiScreen(new GuiTTBlock(entity));
     }
 
     @Override

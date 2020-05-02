@@ -77,14 +77,14 @@ public class GuiTTBlock extends GuiScreen implements GuiSlider.ISlider {
         this.addButton(new GuiButton(6, this.width/2 + sliderWidth/2 + 10, this.height-30, sliderWidth, 20, "Done"));
 
         Vector3f translation = this.blockEntity.getTranslation();
-        this.xPosition = this.addButton(new GuiSlider(7, this.width/2 - 3*sliderWidth/2 - 10, this.height/2+ 30, sliderWidth, 20, "X: ", "", -2, 2, translation.x, true, true, this));
-        this.yPosition = this.addButton(new GuiSlider(8, this.width/2 - sliderWidth/2, this.height/2 + 30, sliderWidth, 20, "Y: ", "", -2, 2, translation.y, true, true, this));
-        this.zPosition = this.addButton(new GuiSlider(9, this.width/2 + sliderWidth/2 + 10, this.height/2 + 30, sliderWidth, 20, "Z: ", "", -2, 2, translation.z, true, true, this));
+        (this.xPosition = this.addButton(new GuiSlider(7, this.width/2 - 3*sliderWidth/2 - 10, this.height/2+ 30, sliderWidth, 20, "X: ", "", -2, 2, translation.x, true, true, this))).updateSlider();
+        (this.yPosition = this.addButton(new GuiSlider(8, this.width/2 - sliderWidth/2, this.height/2 + 30, sliderWidth, 20, "Y: ", "", -2, 2, translation.y, true, true, this))).updateSlider();
+        (this.zPosition = this.addButton(new GuiSlider(9, this.width/2 + sliderWidth/2 + 10, this.height/2 + 30, sliderWidth, 20, "Z: ", "", -2, 2, translation.z, true, true, this))).updateSlider();
 
         Vector3f rotation = this.blockEntity.getRotation();
-        this.xRotation = this.addButton(new GuiSlider(10, this.width/2 - 3*sliderWidth/2 - 10, this.height/2 + 60, sliderWidth, 20, "X: ", "", -180, 180, rotation.x, true, true, this));
-        this.yRotation = this.addButton(new GuiSlider(11, this.width/2 - sliderWidth/2, this.height/2 + 60, sliderWidth, 20, "Y: ", "", -180, 180, rotation.y, true, true, this));
-        this.zRotation = this.addButton(new GuiSlider(12, this.width/2 + sliderWidth/2 + 10, this.height/2 + 60, sliderWidth, 20, "Z: ", "", -180, 180, rotation.z, true, true, this));
+        (this.xRotation = this.addButton(new GuiSlider(10, this.width/2 - 3*sliderWidth/2 - 10, this.height/2 + 60, sliderWidth, 20, "X: ", "", -180, 180, rotation.x, true, true, this))).updateSlider();
+        (this.yRotation = this.addButton(new GuiSlider(11, this.width/2 - sliderWidth/2, this.height/2 + 60, sliderWidth, 20, "Y: ", "", -180, 180, rotation.y, true, true, this))).updateSlider();
+        (this.zRotation = this.addButton(new GuiSlider(12, this.width/2 + sliderWidth/2 + 10, this.height/2 + 60, sliderWidth, 20, "Z: ", "", -180, 180, rotation.z, true, true, this))).updateSlider();
 
         this.scaleSlider = this.addButton(new GuiSlider(13, this.width/2 - sliderWidth/2, this.height/2+7, sliderWidth, 20, "Scale: ", "", -5, 5, Math.log(this.blockEntity.getScale()) / Math.log(2), true, true, this));
 

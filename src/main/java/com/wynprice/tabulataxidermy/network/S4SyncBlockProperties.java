@@ -5,6 +5,7 @@ import com.wynprice.tabulataxidermy.TTBlockEntity;
 import io.netty.buffer.ByteBuf;
 import net.dumbcode.dumblibrary.server.network.WorldModificationsMessageHandler;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
@@ -64,8 +65,9 @@ public class S4SyncBlockProperties implements IMessage {
                 ((TTBlockEntity) entity).setRotation(message.rotation);
                 ((TTBlockEntity) entity).setScale(message.scale);
             }
-            if(Minecraft.getMinecraft().currentScreen instanceof GuiTTBlock) {
-                ((GuiTTBlock) Minecraft.getMinecraft().currentScreen).setProperties(message.position, message.rotation, message.scale);
+            GuiScreen screen = Minecraft.getMinecraft().currentScreen;
+            if(screen instanceof GuiTTBlock && ((GuiTTBlock) screen).getBlockEntity().getPos().equals(message.blockPos)) {
+                ((GuiTTBlock) screen).setProperties(message.position, message.rotation, message.scale);
             }
         }
     }

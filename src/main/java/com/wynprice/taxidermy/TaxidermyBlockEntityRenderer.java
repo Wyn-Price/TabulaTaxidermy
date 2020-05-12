@@ -1,4 +1,4 @@
-package com.wynprice.tabulataxidermy;
+package com.wynprice.taxidermy;
 
 import net.dumbcode.dumblibrary.client.model.tabula.TabulaModel;
 import net.dumbcode.dumblibrary.client.model.tabula.TabulaModelRenderer;
@@ -10,9 +10,9 @@ import net.minecraft.util.ResourceLocation;
 import javax.vecmath.Vector3f;
 import java.util.Map;
 
-public class TTBlockEntityRenderer extends TileEntitySpecialRenderer<TTBlockEntity> {
+public class TaxidermyBlockEntityRenderer extends TileEntitySpecialRenderer<TaxidermyBlockEntity> {
     @Override
-    public void render(TTBlockEntity te, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
+    public void render(TaxidermyBlockEntity te, double x, double y, double z, float partialTicks, int destroyStage, float alpha) {
         GlStateManager.pushMatrix();
         GlStateManager.disableCull();
         Vector3f t = te.getTranslation();
@@ -51,15 +51,15 @@ public class TTBlockEntityRenderer extends TileEntitySpecialRenderer<TTBlockEnti
             Minecraft.getMinecraft().renderEngine.bindTexture(location);
             model.renderBoxes(1/16F);
         } else {
-            TTClientCache.MODEL.get(te.getModelUUID()).ifPresent(te::setModel);
-            TTClientCache.TEXTURE.get(te.getTextureUUID()).ifPresent(te::setTexture);
+            TaxidermyClientCache.MODEL.get(te.getModelUUID()).ifPresent(te::setModel);
+            TaxidermyClientCache.TEXTURE.get(te.getTextureUUID()).ifPresent(te::setTexture);
         }
 
         GlStateManager.popMatrix();
     }
 
     @Override
-    public boolean isGlobalRenderer(TTBlockEntity te) {
+    public boolean isGlobalRenderer(TaxidermyBlockEntity te) {
         return true;
     }
 }

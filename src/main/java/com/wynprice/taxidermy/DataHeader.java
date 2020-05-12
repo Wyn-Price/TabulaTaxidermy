@@ -1,4 +1,4 @@
-package com.wynprice.tabulataxidermy;
+package com.wynprice.taxidermy;
 
 import io.netty.buffer.ByteBuf;
 import lombok.Value;

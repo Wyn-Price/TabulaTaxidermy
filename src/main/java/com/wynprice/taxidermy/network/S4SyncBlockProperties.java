@@ -1,7 +1,7 @@
-package com.wynprice.tabulataxidermy.network;
+package com.wynprice.taxidermy.network;
 
-import com.wynprice.tabulataxidermy.GuiTTBlock;
-import com.wynprice.tabulataxidermy.TTBlockEntity;
+import com.wynprice.taxidermy.GuiTaxidermyBlock;
+import com.wynprice.taxidermy.TaxidermyBlockEntity;
 import io.netty.buffer.ByteBuf;
 import net.dumbcode.dumblibrary.server.network.WorldModificationsMessageHandler;
 import net.minecraft.client.Minecraft;
@@ -60,14 +60,14 @@ public class S4SyncBlockProperties implements IMessage {
         @Override
         protected void handleMessage(S4SyncBlockProperties message, MessageContext ctx, World world, EntityPlayer player) {
             TileEntity entity = world.getTileEntity(message.blockPos);
-            if(entity instanceof TTBlockEntity) {
-                ((TTBlockEntity) entity).setTranslation(message.position);
-                ((TTBlockEntity) entity).setRotation(message.rotation);
-                ((TTBlockEntity) entity).setScale(message.scale);
+            if(entity instanceof TaxidermyBlockEntity) {
+                ((TaxidermyBlockEntity) entity).setTranslation(message.position);
+                ((TaxidermyBlockEntity) entity).setRotation(message.rotation);
+                ((TaxidermyBlockEntity) entity).setScale(message.scale);
             }
             GuiScreen screen = Minecraft.getMinecraft().currentScreen;
-            if(screen instanceof GuiTTBlock && ((GuiTTBlock) screen).getBlockEntity().getPos().equals(message.blockPos)) {
-                ((GuiTTBlock) screen).setProperties(message.position, message.rotation, message.scale);
+            if(screen instanceof GuiTaxidermyBlock && ((GuiTaxidermyBlock) screen).getBlockEntity().getPos().equals(message.blockPos)) {
+                ((GuiTaxidermyBlock) screen).setProperties(message.position, message.rotation, message.scale);
             }
         }
     }

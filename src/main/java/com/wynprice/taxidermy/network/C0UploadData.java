@@ -1,16 +1,10 @@
-package com.wynprice.tabulataxidermy.network;
+package com.wynprice.taxidermy.network;
 
-import com.google.gson.stream.JsonWriter;
-import com.wynprice.tabulataxidermy.DataHandler;
-import com.wynprice.tabulataxidermy.DataHeader;
-import com.wynprice.tabulataxidermy.TTBlockEntity;
-import com.wynprice.tabulataxidermy.TabulaTaxidermy;
+import com.wynprice.taxidermy.DataHandler;
+import com.wynprice.taxidermy.TaxidermyBlockEntity;
+import com.wynprice.taxidermy.TabulaTaxidermy;
 import io.netty.buffer.ByteBuf;
-import lombok.Cleanup;
-import net.dumbcode.dumblibrary.server.animation.TabulaUtils;
 import net.dumbcode.dumblibrary.server.network.WorldModificationsMessageHandler;
-import net.dumbcode.dumblibrary.server.tabula.TabulaBufferHandler;
-import net.dumbcode.dumblibrary.server.tabula.TabulaModelInformation;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.tileentity.TileEntity;
@@ -19,13 +13,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.fml.common.network.ByteBufUtils;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
-import org.apache.commons.io.FileUtils;
 
-import javax.imageio.ImageIO;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.UUID;
 
 public class C0UploadData implements IMessage {
@@ -67,10 +55,10 @@ public class C0UploadData implements IMessage {
         @Override
         protected void handleMessage(C0UploadData message, MessageContext ctx, World world, EntityPlayer player) {
             TileEntity entity = world.getTileEntity(message.pos);
-            if(entity instanceof TTBlockEntity) {
-                message.handler.applyTo((TTBlockEntity) entity, message.uuid);
+            if(entity instanceof TaxidermyBlockEntity) {
+                message.handler.applyTo((TaxidermyBlockEntity) entity, message.uuid);
                 entity.markDirty();
-                ((TTBlockEntity) entity).syncToClient();
+                ((TaxidermyBlockEntity) entity).syncToClient();
             }
             message.handler.saveToFile(world, message.uuid, message.name, player.getName());
 

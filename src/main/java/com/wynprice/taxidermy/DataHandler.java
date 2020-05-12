@@ -1,4 +1,4 @@
-package com.wynprice.tabulataxidermy;
+package com.wynprice.taxidermy;
 
 import com.google.gson.*;
 import io.netty.buffer.ByteBuf;
@@ -21,12 +21,12 @@ import java.util.function.Function;
 
 public class DataHandler<O> {
     public static final DataHandler<BufferedImage> TEXTURE = new DataHandler<>(
-        "texture", ".png", TTBlockEntity::setTextureUUID, ImageBufferHandler.INSTANCE,
+        "texture", ".png", TaxidermyBlockEntity::setTextureUUID, ImageBufferHandler.INSTANCE,
         (img, stream) -> ImageIO.write(img, "PNG", stream), ImageIO::read
     );
 
     public static final DataHandler<TabulaModelInformation> MODEL = new DataHandler<>(
-        "model", ".tbl", TTBlockEntity::setModelUUID, TabulaBufferHandler.INSTANCE,
+        "model", ".tbl", TaxidermyBlockEntity::setModelUUID, TabulaBufferHandler.INSTANCE,
         TabulaUtils::writeToStream, TabulaUtils::getModelInformation
     );
 
@@ -38,7 +38,7 @@ public class DataHandler<O> {
     private final String typeName;
     @Getter
     private final String extension;
-    private final BiConsumer<TTBlockEntity, UUID> uuidSetter;
+    private final BiConsumer<TaxidermyBlockEntity, UUID> uuidSetter;
 
     //IO Stuff:
     private final BiConsumer<ByteBuf, O> seralizer;
@@ -47,7 +47,7 @@ public class DataHandler<O> {
     private final ThrowableFunction<InputStream, O> fileDeseralizer;
 
     public <T extends BiConsumer<ByteBuf, O> & Function<ByteBuf, O>> DataHandler(
-        String typeName, String extension, BiConsumer<TTBlockEntity, UUID> uuidSetter, T handler,
+        String typeName, String extension, BiConsumer<TaxidermyBlockEntity, UUID> uuidSetter, T handler,
         ThrowableBiConsumer<O, OutputStream> filsSeralizer, ThrowableFunction<InputStream, O> fileDeseralizer
     ) {
         this.typeName = typeName;
@@ -124,7 +124,7 @@ public class DataHandler<O> {
         this.writeHeaders(world, headers);
     }
 
-    public void applyTo(TTBlockEntity blockEntity, UUID uuid) {
+    public void applyTo(TaxidermyBlockEntity blockEntity, UUID uuid) {
         this.uuidSetter.accept(blockEntity, uuid);
     }
 
@@ -172,7 +172,7 @@ public class DataHandler<O> {
             this.parent = handler;
         }
 
-        public void applyTo(TTBlockEntity blockEntity, UUID uuid) {
+        public void applyTo(TaxidermyBlockEntity blockEntity, UUID uuid) {
             this.parent.applyTo(blockEntity, uuid);
         }
 

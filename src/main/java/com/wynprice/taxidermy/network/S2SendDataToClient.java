@@ -1,7 +1,7 @@
-package com.wynprice.tabulataxidermy.network;
+package com.wynprice.taxidermy.network;
 
-import com.wynprice.tabulataxidermy.DataHandler;
-import com.wynprice.tabulataxidermy.TTClientCache;
+import com.wynprice.taxidermy.DataHandler;
+import com.wynprice.taxidermy.TaxidermyClientCache;
 import io.netty.buffer.ByteBuf;
 import net.dumbcode.dumblibrary.server.network.WorldModificationsMessageHandler;
 import net.minecraft.entity.player.EntityPlayer;
@@ -42,7 +42,7 @@ public class S2SendDataToClient implements IMessage {
 
         @Override
         protected void handleMessage(S2SendDataToClient message, MessageContext ctx, World world, EntityPlayer player) {
-            TTClientCache.handle(message.uuid, message.handler);
+            TaxidermyClientCache.handle(message.uuid, message.handler);
         }
     }
 }

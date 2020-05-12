@@ -1,8 +1,8 @@
-package com.wynprice.tabulataxidermy.network;
+package com.wynprice.taxidermy.network;
 
-import com.wynprice.tabulataxidermy.DataHandler;
-import com.wynprice.tabulataxidermy.DataHeader;
-import com.wynprice.tabulataxidermy.GuiTTBlock;
+import com.wynprice.taxidermy.DataHandler;
+import com.wynprice.taxidermy.DataHeader;
+import com.wynprice.taxidermy.GuiTaxidermyBlock;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
@@ -48,8 +48,8 @@ public class S6SendHeaders implements IMessage {
 
         @Override
         public IMessage onMessage(S6SendHeaders message, MessageContext ctx) {
-            if(Minecraft.getMinecraft().currentScreen instanceof GuiTTBlock) {
-                ((GuiTTBlock) Minecraft.getMinecraft().currentScreen).setList(message.handler, message.headers);
+            if(Minecraft.getMinecraft().currentScreen instanceof GuiTaxidermyBlock) {
+                ((GuiTaxidermyBlock) Minecraft.getMinecraft().currentScreen).setList(message.handler, message.headers);
             }
             return null;
         }

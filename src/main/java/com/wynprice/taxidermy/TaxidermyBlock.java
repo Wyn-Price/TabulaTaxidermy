@@ -1,6 +1,5 @@
-package com.wynprice.tabulataxidermy;
+package com.wynprice.taxidermy;
 
-import net.dumbcode.dumblibrary.server.utils.SidedExecutor;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.PropertyBool;
@@ -22,11 +21,11 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 
 import javax.annotation.Nullable;
 
-public class TTBlock extends BlockContainer {
+public class TaxidermyBlock extends BlockContainer {
 
     public static final PropertyBool HIDDEN = PropertyBool.create("hidden");
 
-    public TTBlock(Material materialIn) {
+    public TaxidermyBlock(Material materialIn) {
         super(materialIn);
         this.setDefaultState(this.getBlockState().getBaseState().withProperty(HIDDEN, false));
     }
@@ -34,15 +33,15 @@ public class TTBlock extends BlockContainer {
     @Override
     public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
         TileEntity entity = worldIn.getTileEntity(pos);
-        if(worldIn.isRemote && entity instanceof TTBlockEntity) {
-            this.displayGui((TTBlockEntity) entity);
+        if(worldIn.isRemote && entity instanceof TaxidermyBlockEntity) {
+            this.displayGui((TaxidermyBlockEntity) entity);
         }
         return true;
     }
 
     @SideOnly(Side.CLIENT)
-    private void displayGui(TTBlockEntity entity) {
-        Minecraft.getMinecraft().displayGuiScreen(new GuiTTBlock(entity));
+    private void displayGui(TaxidermyBlockEntity entity) {
+        Minecraft.getMinecraft().displayGuiScreen(new GuiTaxidermyBlock(entity));
     }
 
     @Override
@@ -84,7 +83,7 @@ public class TTBlock extends BlockContainer {
     @Nullable
     @Override
     public TileEntity createNewTileEntity(World worldIn, int meta) {
-        return new TTBlockEntity();
+        return new TaxidermyBlockEntity();
     }
 
     @Override

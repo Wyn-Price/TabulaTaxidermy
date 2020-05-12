@@ -1,7 +1,7 @@
-package com.wynprice.tabulataxidermy.network;
+package com.wynprice.taxidermy.network;
 
-import com.wynprice.tabulataxidermy.DataHandler;
-import com.wynprice.tabulataxidermy.TabulaTaxidermy;
+import com.wynprice.taxidermy.DataHandler;
+import com.wynprice.taxidermy.TabulaTaxidermy;
 import io.netty.buffer.ByteBuf;
 import net.dumbcode.dumblibrary.server.network.WorldModificationsMessageHandler;
 import net.minecraft.entity.player.EntityPlayer;

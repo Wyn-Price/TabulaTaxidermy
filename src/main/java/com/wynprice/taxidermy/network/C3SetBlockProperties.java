@@ -1,7 +1,7 @@
-package com.wynprice.tabulataxidermy.network;
+package com.wynprice.taxidermy.network;
 
-import com.wynprice.tabulataxidermy.TTBlockEntity;
-import com.wynprice.tabulataxidermy.TabulaTaxidermy;
+import com.wynprice.taxidermy.TaxidermyBlockEntity;
+import com.wynprice.taxidermy.TabulaTaxidermy;
 import io.netty.buffer.ByteBuf;
 import net.dumbcode.dumblibrary.server.network.WorldModificationsMessageHandler;
 import net.minecraft.entity.player.EntityPlayer;
@@ -58,10 +58,10 @@ public class C3SetBlockProperties implements IMessage {
         @Override
         protected void handleMessage(C3SetBlockProperties message, MessageContext ctx, World world, EntityPlayer player) {
             TileEntity entity = world.getTileEntity(message.blockPos);
-            if(entity instanceof TTBlockEntity) {
-                ((TTBlockEntity) entity).setTranslation(message.position);
-                ((TTBlockEntity) entity).setRotation(message.rotation);
-                ((TTBlockEntity) entity).setScale(message.scale);
+            if(entity instanceof TaxidermyBlockEntity) {
+                ((TaxidermyBlockEntity) entity).setTranslation(message.position);
+                ((TaxidermyBlockEntity) entity).setRotation(message.rotation);
+                ((TaxidermyBlockEntity) entity).setScale(message.scale);
                 entity.markDirty();
             }
             TabulaTaxidermy.NETWORK.sendToDimension(new S4SyncBlockProperties(message.blockPos, message.position, message.rotation, message.scale), world.provider.getDimension());

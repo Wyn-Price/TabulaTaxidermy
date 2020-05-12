@@ -1,22 +1,14 @@
-package com.wynprice.tabulataxidermy.network;
+package com.wynprice.taxidermy.network;
 
-import com.wynprice.tabulataxidermy.DataHandler;
-import com.wynprice.tabulataxidermy.TabulaTaxidermy;
+import com.wynprice.taxidermy.DataHandler;
 import io.netty.buffer.ByteBuf;
-import net.dumbcode.dumblibrary.server.animation.TabulaUtils;
 import net.dumbcode.dumblibrary.server.network.SplitNetworkHandler;
 import net.dumbcode.dumblibrary.server.network.WorldModificationsMessageHandler;
-import net.dumbcode.dumblibrary.server.tabula.TabulaModelInformation;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.UUID;
 
 public class C1RequestDataForUUID implements IMessage {

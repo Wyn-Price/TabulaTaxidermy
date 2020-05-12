@@ -1,8 +1,8 @@
-package com.wynprice.tabulataxidermy.network;
+package com.wynprice.taxidermy.network;
 
-import com.wynprice.tabulataxidermy.DataHandler;
-import com.wynprice.tabulataxidermy.TTBlockEntity;
-import com.wynprice.tabulataxidermy.TabulaTaxidermy;
+import com.wynprice.taxidermy.DataHandler;
+import com.wynprice.taxidermy.TaxidermyBlockEntity;
+import com.wynprice.taxidermy.TabulaTaxidermy;
 import io.netty.buffer.ByteBuf;
 import net.dumbcode.dumblibrary.server.network.WorldModificationsMessageHandler;
 import net.minecraft.entity.player.EntityPlayer;
@@ -49,8 +49,8 @@ public class C7S8SetBlockUUID implements IMessage {
         @Override
         protected void handleMessage(C7S8SetBlockUUID message, MessageContext ctx, World world, EntityPlayer player) {
             TileEntity entity = world.getTileEntity(message.pos);
-            if(entity instanceof TTBlockEntity) {
-                message.handler.applyTo((TTBlockEntity) entity, message.uuid);
+            if(entity instanceof TaxidermyBlockEntity) {
+                message.handler.applyTo((TaxidermyBlockEntity) entity, message.uuid);
             }
             if(!world.isRemote) {
                 TabulaTaxidermy.NETWORK.sendToDimension(new C7S8SetBlockUUID(message.pos, message.uuid, message.handler), world.provider.getDimension());

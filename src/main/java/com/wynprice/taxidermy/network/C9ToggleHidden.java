@@ -1,7 +1,7 @@
-package com.wynprice.tabulataxidermy.network;
+package com.wynprice.taxidermy.network;
 
-import com.wynprice.tabulataxidermy.TTBlock;
-import com.wynprice.tabulataxidermy.TabulaTaxidermy;
+import com.wynprice.taxidermy.TaxidermyBlock;
+import com.wynprice.taxidermy.TabulaTaxidermy;
 import io.netty.buffer.ByteBuf;
 import net.dumbcode.dumblibrary.server.network.WorldModificationsMessageHandler;
 import net.minecraft.block.state.IBlockState;
@@ -38,7 +38,7 @@ public class C9ToggleHidden implements IMessage {
         protected void handleMessage(C9ToggleHidden message, MessageContext ctx, World world, EntityPlayer player) {
             IBlockState state = world.getBlockState(message.pos);
             if(state.getBlock() == TabulaTaxidermy.BLOCK) {
-                world.setBlockState(message.pos, state.withProperty(TTBlock.HIDDEN, !state.getValue(TTBlock.HIDDEN)));
+                world.setBlockState(message.pos, state.withProperty(TaxidermyBlock.HIDDEN, !state.getValue(TaxidermyBlock.HIDDEN)));
             }
         }
     }

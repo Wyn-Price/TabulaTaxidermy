@@ -1,16 +1,19 @@
-package com.wynprice.tabulataxidermy;
+package com.wynprice.taxidermy;
 
-import com.wynprice.tabulataxidermy.network.*;
+import com.wynprice.taxidermy.network.*;
 import net.dumbcode.dumblibrary.server.network.SplitNetworkHandler;
 import net.dumbcode.dumblibrary.server.utils.InjectedUtils;
 import net.dumbcode.dumblibrary.server.utils.SidedExecutor;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
+import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.client.event.ModelRegistryEvent;
+import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.Mod;
@@ -25,8 +28,8 @@ import org.apache.logging.log4j.Logger;
 @Mod(modid = TabulaTaxidermy.MODID, name = TabulaTaxidermy.NAME, version = TabulaTaxidermy.VERSION)
 @Mod.EventBusSubscriber
 public class TabulaTaxidermy {
-    public static final String MODID = "tabulataxidermy";
-    public static final String NAME = "Tabula Taxidermy";
+    public static final String MODID = "taxidermy";
+    public static final String NAME = "Taxidermy";
     public static final String VERSION = "0.1.6";
 
     public static final SimpleNetworkWrapper NETWORK = new SimpleNetworkWrapper(MODID);
@@ -61,19 +64,24 @@ public class TabulaTaxidermy {
         NETWORK.registerMessage(new C7S8SetBlockUUID.Handler(), C7S8SetBlockUUID.class, 8, Side.CLIENT);
         NETWORK.registerMessage(new C9ToggleHidden.Handler(), C9ToggleHidden.class, 9, Side.SERVER);
 
-        GameRegistry.registerTileEntity(TTBlockEntity.class, new ResourceLocation(MODID, "taxi_block"));
+        GameRegistry.registerTileEntity(TaxidermyBlockEntity.class, new ResourceLocation(MODID, "taxi_block"));
 
         SidedExecutor.runClient(() -> TabulaTaxidermy::registerTESR);
     }
 
     @SideOnly(Side.CLIENT)
     private static void registerTESR() {
-        ClientRegistry.bindTileEntitySpecialRenderer(TTBlockEntity.class, new TTBlockEntityRenderer());
+        ClientRegistry.bindTileEntitySpecialRenderer(TaxidermyBlockEntity.class, new TaxidermyBlockEntityRenderer());
+    }
+
+    @SubscribeEvent
+    public static void registerModels(ModelRegistryEvent event) {
+        ModelLoader.setCustomModelResourceLocation(ITEM, 0, new ModelResourceLocation(MODID + ":taxi_item", "inventory"));
     }
 
     @SubscribeEvent
     public static void registerBlock(RegistryEvent.Register<Block> event) {
-        event.getRegistry().register(new TTBlock(Material.IRON).setRegistryName("taxi_block").setTranslationKey(MODID + ".taxi_block").setCreativeTab(TAB));
+        event.getRegistry().register(new TaxidermyBlock(Material.IRON).setRegistryName("taxi_block").setTranslationKey(MODID + ".taxi_block").setCreativeTab(TAB));
     }
 
     @SubscribeEvent

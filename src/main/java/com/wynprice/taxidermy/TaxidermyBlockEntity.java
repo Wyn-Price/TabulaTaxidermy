@@ -1,10 +1,9 @@
-package com.wynprice.tabulataxidermy;
+package com.wynprice.taxidermy;
 
 import lombok.Getter;
 import lombok.Setter;
 import net.dumbcode.dumblibrary.client.model.tabula.TabulaModel;
-import net.dumbcode.dumblibrary.server.taxidermy.TaxidermyBlockEntity;
-import net.dumbcode.dumblibrary.server.utils.SidedExecutor;
+import net.dumbcode.dumblibrary.server.taxidermy.BaseTaxidermyBlockEntity;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
@@ -17,7 +16,7 @@ import java.util.UUID;
 
 @Getter
 @Setter
-public class TTBlockEntity extends TaxidermyBlockEntity {
+public class TaxidermyBlockEntity extends BaseTaxidermyBlockEntity {
 
     private UUID modelUUID = new UUID(0, 0);
     private UUID textureUUID = new UUID(0, 0);

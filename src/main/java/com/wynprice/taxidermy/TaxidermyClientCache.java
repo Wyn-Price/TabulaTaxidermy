@@ -1,8 +1,6 @@
-package com.wynprice.tabulataxidermy;
+package com.wynprice.taxidermy;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.wynprice.tabulataxidermy.network.C1RequestDataForUUID;
+import com.wynprice.taxidermy.network.C1RequestDataForUUID;
 import lombok.RequiredArgsConstructor;
 import net.dumbcode.dumblibrary.client.model.tabula.TabulaModel;
 import net.dumbcode.dumblibrary.server.tabula.TabulaModelInformation;
@@ -15,10 +13,10 @@ import java.util.*;
 import java.util.function.Function;
 
 @RequiredArgsConstructor
-public class TTClientCache<F, T> {
-    public static final TTClientCache<TabulaModelInformation, TabulaModel> MODEL = new TTClientCache<>(DataHandler.MODEL, TabulaModelInformation::createModel);
+public class TaxidermyClientCache<F, T> {
+    public static final TaxidermyClientCache<TabulaModelInformation, TabulaModel> MODEL = new TaxidermyClientCache<>(DataHandler.MODEL, TabulaModelInformation::createModel);
 
-    public static final TTClientCache<BufferedImage, ResourceLocation> TEXTURE = new TTClientCache<>(DataHandler.TEXTURE, image ->
+    public static final TaxidermyClientCache<BufferedImage, ResourceLocation> TEXTURE = new TaxidermyClientCache<>(DataHandler.TEXTURE, image ->
         Minecraft.getMinecraft().renderEngine.getDynamicTextureLocation(TabulaTaxidermy.MODID, new DynamicTexture(image))
     );
 
@@ -44,7 +42,7 @@ public class TTClientCache<F, T> {
 
     public static <O, F> void handle(UUID uuid, DataHandler.Handler<O> handler) {
         @SuppressWarnings("unchecked")
-        TTClientCache<O, F> cache = (TTClientCache<O, F>) (handler.parent == DataHandler.TEXTURE ? TEXTURE : MODEL);
+        TaxidermyClientCache<O, F> cache = (TaxidermyClientCache<O, F>) (handler.parent == DataHandler.TEXTURE ? TEXTURE : MODEL);
         cache.map.put(uuid, cache.creator.apply(handler.object));
 
     }

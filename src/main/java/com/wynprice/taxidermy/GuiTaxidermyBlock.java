@@ -1,6 +1,6 @@
-package com.wynprice.tabulataxidermy;
+package com.wynprice.taxidermy;
 
-import com.wynprice.tabulataxidermy.network.*;
+import com.wynprice.taxidermy.network.*;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.dumbcode.dumblibrary.client.gui.GuiConstants;
@@ -13,7 +13,6 @@ import net.dumbcode.dumblibrary.server.network.SplitNetworkHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiButton;
-import net.minecraft.client.gui.GuiLabel;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TextComponentString;
@@ -28,10 +27,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class GuiTTBlock extends GuiScreen implements GuiSlider.ISlider {
+public class GuiTaxidermyBlock extends GuiScreen implements GuiSlider.ISlider {
 
     @Getter
-    private final TTBlockEntity blockEntity;
+    private final TaxidermyBlockEntity blockEntity;
 
     private FileDropboxFrame dropboxFrame;
 
@@ -59,7 +58,7 @@ public class GuiTTBlock extends GuiScreen implements GuiSlider.ISlider {
     @Getter
     private final List<SelectListEntry> modelEntries = new ArrayList<>();
 
-    public GuiTTBlock(TTBlockEntity blockEntity) {
+    public GuiTaxidermyBlock(TaxidermyBlockEntity blockEntity) {
         this.blockEntity = blockEntity;
     }
 

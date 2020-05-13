@@ -2,6 +2,7 @@ package com.wynprice.taxidermy;
 
 import net.dumbcode.dumblibrary.client.model.tabula.TabulaModel;
 import net.dumbcode.dumblibrary.client.model.tabula.TabulaModelRenderer;
+import net.dumbcode.dumblibrary.server.taxidermy.TaxidermyHistory;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
@@ -35,21 +36,41 @@ public class TaxidermyBlockEntityRenderer extends TileEntitySpecialRenderer<Taxi
         TabulaModel model = te.getModel();
         ResourceLocation location = te.getTexture();
 
-        if(model != null && location != null) {
-            Map<String, Vector3f> poseData = te.getPoseData();
-            for(TabulaModelRenderer box : model.getAllCubes()) {
-                Vector3f rotations = poseData.get(box.boxName);
-                if(rotations != null) {
-                    box.rotateAngleX = rotations.x;
-                    box.rotateAngleY = rotations.y;
-                    box.rotateAngleZ = rotations.z;
-                } else {
-                    box.resetRotations();
+        if(model != null) {
+            if(location != null) {
+                Map<String, TaxidermyHistory.CubeProps> poseData = te.getPoseData();
+                for(TabulaModelRenderer box : model.getAllCubes()) {
+                    TaxidermyHistory.CubeProps cubeProps = poseData.get(box.boxName);
+                    if(cubeProps != null) {
+                        if(!Float.isNaN(cubeProps.getAngle().x)) {
+                            box.rotateAngleX = cubeProps.getAngle().x;
+                        }
+                        if(!Float.isNaN(cubeProps.getAngle().y)) {
+                            box.rotateAngleY = cubeProps.getAngle().y;
+                        }
+                        if(!Float.isNaN(cubeProps.getAngle().z)) {
+                            box.rotateAngleZ= cubeProps.getAngle().z;
+                        }
+
+                        if(!Float.isNaN(cubeProps.getRotationPoint().x)) {
+                            box.rotationPointX = cubeProps.getRotationPoint().x;
+                        }
+                        if(!Float.isNaN(cubeProps.getRotationPoint().y)) {
+                            box.rotationPointY = cubeProps.getRotationPoint().y;
+                        }
+                        if(!Float.isNaN(cubeProps.getRotationPoint().z)) {
+                            box.rotationPointZ = cubeProps.getRotationPoint().z;
+                        }
+                    } else {
+                        box.resetRotations();
+                    }
                 }
+                Minecraft.getMinecraft().renderEngine.bindTexture(location);
+                model.renderBoxes(1/16F);
+            } else {
+                model.resetAnimations();
             }
 
-            Minecraft.getMinecraft().renderEngine.bindTexture(location);
-            model.renderBoxes(1/16F);
         } else {
             TaxidermyClientCache.MODEL.get(te.getModelUUID()).ifPresent(te::setModel);
             TaxidermyClientCache.TEXTURE.get(te.getTextureUUID()).ifPresent(te::setTexture);

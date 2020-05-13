@@ -3,10 +3,8 @@ package com.wynprice.taxidermy;
 import com.wynprice.taxidermy.network.*;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import net.dumbcode.dumblibrary.client.gui.GuiConstants;
-import net.dumbcode.dumblibrary.client.gui.GuiDropdownBox;
-import net.dumbcode.dumblibrary.client.gui.GuiTaxidermy;
-import net.dumbcode.dumblibrary.client.gui.SelectListEntry;
+import net.dumbcode.dumblibrary.DumbLibrary;
+import net.dumbcode.dumblibrary.client.gui.*;
 import net.dumbcode.dumblibrary.client.gui.filebox.FileDropboxFrame;
 import net.dumbcode.dumblibrary.client.model.tabula.TabulaModel;
 import net.dumbcode.dumblibrary.server.network.SplitNetworkHandler;
@@ -16,7 +14,6 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TextComponentString;
-import net.minecraftforge.fml.client.config.GuiSlider;
 import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import org.lwjgl.input.Mouse;
 
@@ -26,8 +23,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Consumer;
 
-public class GuiTaxidermyBlock extends GuiScreen implements GuiSlider.ISlider {
+public class GuiTaxidermyBlock extends GuiScreen {
 
     @Getter
     private final TaxidermyBlockEntity blockEntity;
@@ -37,20 +35,17 @@ public class GuiTaxidermyBlock extends GuiScreen implements GuiSlider.ISlider {
     private GuiDropdownBox<SelectListEntry> modelSelectionBox;
     private GuiDropdownBox<SelectListEntry> textureSelectionBox;
 
-    private GuiSlider xPosition;
-    private GuiSlider yPosition;
-    private GuiSlider zPosition;
+    private GuiNumberEntry xPosition;
+    private GuiNumberEntry yPosition;
+    private GuiNumberEntry zPosition;
 
-    private GuiSlider xRotation;
-    private GuiSlider yRotation;
-    private GuiSlider zRotation;
+    private GuiNumberEntry xRotation;
+    private GuiNumberEntry yRotation;
+    private GuiNumberEntry zRotation;
 
-    private GuiSlider scaleSlider;
+    private GuiNumberEntry scaleSlider;
 
-    private GuiSlider[] allSliders;
-    private int selectedIndex = -1;
-
-    private boolean slidersDirty = false;
+    private GuiNumberEntry[] allSliders;
 
     @Getter
     private final List<SelectListEntry> textureEntries = new ArrayList<>();
@@ -76,20 +71,26 @@ public class GuiTaxidermyBlock extends GuiScreen implements GuiSlider.ISlider {
         this.addButton(new GuiButton(6, this.width/2 + sliderWidth/2 + 10, this.height-30, sliderWidth, 20, "Done"));
 
         Vector3f translation = this.blockEntity.getTranslation();
-        (this.xPosition = this.addButton(new GuiSlider(7, this.width/2 - 3*sliderWidth/2 - 10, this.height/2+ 30, sliderWidth, 20, "X: ", "", -2, 2, translation.x, true, true, this))).updateSlider();
-        (this.yPosition = this.addButton(new GuiSlider(8, this.width/2 - sliderWidth/2, this.height/2 + 30, sliderWidth, 20, "Y: ", "", -2, 2, translation.y, true, true, this))).updateSlider();
-        (this.zPosition = this.addButton(new GuiSlider(9, this.width/2 + sliderWidth/2 + 10, this.height/2 + 30, sliderWidth, 20, "Z: ", "", -2, 2, translation.z, true, true, this))).updateSlider();
+        this.xPosition = new GuiNumberEntry(7, translation.x, 1/4F, 2, this.width/4, this.height/2+ 30, sliderWidth, 20, this::addButton, this::onChange);
+        this.yPosition = new GuiNumberEntry(8, translation.y, 1/4F, 2, this.width/2, this.height/2 + 30, sliderWidth, 20, this::addButton, this::onChange);
+        this.zPosition = new GuiNumberEntry(9, translation.z, 1/4F, 2, 3*this.width/4, this.height/2 + 30, sliderWidth, 20, this::addButton, this::onChange);
 
         Vector3f rotation = this.blockEntity.getRotation();
-        (this.xRotation = this.addButton(new GuiSlider(10, this.width/2 - 3*sliderWidth/2 - 10, this.height/2 + 60, sliderWidth, 20, "X: ", "", -180, 180, rotation.x, true, true, this))).updateSlider();
-        (this.yRotation = this.addButton(new GuiSlider(11, this.width/2 - sliderWidth/2, this.height/2 + 60, sliderWidth, 20, "Y: ", "", -180, 180, rotation.y, true, true, this))).updateSlider();
-        (this.zRotation = this.addButton(new GuiSlider(12, this.width/2 + sliderWidth/2 + 10, this.height/2 + 60, sliderWidth, 20, "Z: ", "", -180, 180, rotation.z, true, true, this))).updateSlider();
+        this.xRotation = new GuiNumberEntry(10, rotation.x, 22.5F, 2, this.width/4, this.height/2 + 60, sliderWidth, 20, this::addButton, this::onChange);
+        this.yRotation = new GuiNumberEntry(11, rotation.y, 22.5F, 2, this.width/2, this.height/2 + 60, sliderWidth, 20, this::addButton, this::onChange);
+        this.zRotation = new GuiNumberEntry(12, rotation.z, 22.5F, 2, 3*this.width/4, this.height/2 + 60, sliderWidth, 20, this::addButton, this::onChange);
 
-        this.scaleSlider = this.addButton(new GuiSlider(13, this.width/2 - sliderWidth/2, this.height/2+7, sliderWidth, 20, "Scale: ", "", -5, 5, Math.log(this.blockEntity.getScale()) / Math.log(2), true, true, this));
+        this.scaleSlider = new GuiNumberEntry(13, this.blockEntity.getScale(), 1/4F, 2, this.width/2, this.height/2, sliderWidth, 20, this::addButton, this::onChange);
 
-        this.allSliders = new GuiSlider[]{ this.xPosition, this.yPosition, this.zPosition, this.xRotation, this.yRotation, this.zRotation, this.scaleSlider };
+        this.allSliders = new GuiNumberEntry[]{ this.xPosition, this.yPosition, this.zPosition, this.xRotation, this.yRotation, this.zRotation, this.scaleSlider };
 
         super.initGui();
+    }
+
+    private void runOnSliders(Consumer<GuiNumberEntry> consumer) {
+        for (GuiNumberEntry slider : this.allSliders) {
+            consumer.accept(slider);
+        }
     }
 
     @Override
@@ -107,6 +108,7 @@ public class GuiTaxidermyBlock extends GuiScreen implements GuiSlider.ISlider {
         if(button.id == 6) {
             Minecraft.getMinecraft().displayGuiScreen(null);
         }
+        this.runOnSliders(e -> e.buttonClicked(button));
         super.actionPerformed(button);
     }
 
@@ -114,6 +116,7 @@ public class GuiTaxidermyBlock extends GuiScreen implements GuiSlider.ISlider {
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         this.drawDefaultBackground();
         super.drawScreen(mouseX, mouseY, partialTicks);
+        this.runOnSliders(GuiNumberEntry::render);
         this.modelSelectionBox.render(mouseX, mouseY);
         this.textureSelectionBox.render(mouseX, mouseY);
 
@@ -127,19 +130,8 @@ public class GuiTaxidermyBlock extends GuiScreen implements GuiSlider.ISlider {
     protected void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
         this.modelSelectionBox.mouseClicked(mouseX, mouseY, mouseButton);
         this.textureSelectionBox.mouseClicked(mouseX, mouseY, mouseButton);
-        for (int i = 0; i < this.allSliders.length; i++) {
-            if(GuiConstants.mouseOn(this.allSliders[i], mouseX, mouseY)) {
-                this.selectedIndex = i;
-                break;
-            }
-        }
+        this.runOnSliders(e -> e.mouseClicked(mouseX, mouseY, mouseButton));
         super.mouseClicked(mouseX, mouseY, mouseButton);
-    }
-
-    @Override
-    protected void mouseReleased(int mouseX, int mouseY, int state) {
-        this.selectedIndex = -1;
-        super.mouseReleased(mouseX, mouseY, state);
     }
 
     @Override
@@ -150,6 +142,7 @@ public class GuiTaxidermyBlock extends GuiScreen implements GuiSlider.ISlider {
         }
         this.modelSelectionBox.handleMouseInput();
         this.textureSelectionBox.handleMouseInput();
+        this.runOnSliders(e -> e.handleMouseInput(this.width, this.height));
         super.handleMouseInput();
     }
 
@@ -161,21 +154,18 @@ public class GuiTaxidermyBlock extends GuiScreen implements GuiSlider.ISlider {
     }
 
     @Override
+    protected void keyTyped(char typedChar, int keyCode) throws IOException {
+        this.runOnSliders(e -> e.keyTyped(typedChar, keyCode));
+        super.keyTyped(typedChar, keyCode);
+    }
+
+    @Override
     public boolean doesGuiPauseGame() {
         return false;
     }
 
     @Override
     public void updateScreen() {
-        if(this.slidersDirty) {
-            this.slidersDirty = false;
-            TabulaTaxidermy.NETWORK.sendToServer(new C3SetBlockProperties(this.blockEntity.getPos(),
-                new Vector3f((float) this.xPosition.getValue(), (float) this.yPosition.getValue(), (float) this.zPosition.getValue()),
-                new Vector3f((float) this.xRotation.getValue(), (float) this.yRotation.getValue(), (float) this.zRotation.getValue()),
-                (float) Math.pow(2, this.scaleSlider.getValue())
-            ));
-        }
-
         for (SelectListEntry entry : this.modelEntries) {
             if(entry instanceof DataHeaderEntry && ((DataHeaderEntry) entry).header.getUuid().equals(this.blockEntity.getModelUUID())) {
                 this.modelSelectionBox.setActive(entry);
@@ -188,47 +178,19 @@ public class GuiTaxidermyBlock extends GuiScreen implements GuiSlider.ISlider {
                 break;
             }
         }
+        this.runOnSliders(GuiNumberEntry::updateEntry);
         super.updateScreen();
     }
 
-    @Override
-    public void onChangeSliderValue(GuiSlider slider) {
-        this.slidersDirty = true;
-        if(slider.id == 12) {
-            slider.parent = null;
-            double value = Math.pow(2, slider.getValue());
-            slider.displayString = slider.dispString + (Math.round(value * 100F) / 100F) + slider.suffix;
-            slider.parent = this;
-        }
+    public void onChange(GuiNumberEntry entry, int id) {
+        TabulaTaxidermy.NETWORK.sendToServer(new C3SetBlockProperties(this.blockEntity.getPos(), id-7, (float) entry.getValue()));
     }
 
-    public void setProperties(Vector3f translation, Vector3f angles, float scale) {
-        if(this.selectedIndex != 0) {
-            this.xPosition.setValue(translation.x);
-        }
-        if(this.selectedIndex != 1) {
-            this.yPosition.setValue(translation.y);
-        }
-        if(this.selectedIndex != 2) {
-            this.zPosition.setValue(translation.z);
-        }
-
-        if(this.selectedIndex != 3) {
-            this.xRotation.setValue(angles.x);
-        }
-        if(this.selectedIndex != 4) {
-            this.yRotation.setValue(angles.y);
-        }
-        if(this.selectedIndex != 5) {
-            this.zRotation.setValue(angles.z);
-        }
-
-        if(this.selectedIndex != 6) {
-            this.scaleSlider.setValue(Math.log(scale) / Math.log(2));
-        }
+    public void setProperties(int index, float value) {
+        this.allSliders[index].setValue(value, false);
     }
 
-    public void setList(DataHandler handler, List<DataHeader> headers) {
+    public void setList(DataHandler<?> handler, List<DataHeader> headers) {
         List<SelectListEntry> entries = (handler == DataHandler.TEXTURE ? this.textureEntries : this.modelEntries);
         entries.clear();
         entries.add(new UploadEntryEntry(handler));

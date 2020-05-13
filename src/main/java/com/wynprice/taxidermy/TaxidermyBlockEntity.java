@@ -87,4 +87,20 @@ public class TaxidermyBlockEntity extends BaseTaxidermyBlockEntity {
     public double getMaxRenderDistanceSquared() {
         return 65536.0D;
     }
+
+    public void setProperty(int index, float value) {
+        if(index >= 0 && index < 3) {
+            float[] arr = new float[3];
+            this.translation.get(arr);
+            arr[index] = value;
+            this.translation.set(arr);
+        } else if(index >= 3 && index < 6) {
+            float[] arr = new float[3];
+            this.rotation.get(arr);
+            arr[index - 3] = value;
+            this.rotation.set(arr);
+        } else if(index == 6) {
+            this.scale = value;
+        }
+    }
 }

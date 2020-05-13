@@ -18,42 +18,33 @@ import javax.vecmath.Vector3f;
 public class S4SyncBlockProperties implements IMessage {
 
     private BlockPos blockPos;
-    private Vector3f position;
-    private Vector3f rotation;
-    private float scale;
+    private int index;
+    private float value;
 
     public S4SyncBlockProperties() {
     }
 
-    public S4SyncBlockProperties(BlockPos blockPos, Vector3f position, Vector3f rotation, float scale) {
+    public S4SyncBlockProperties(BlockPos blockPos, int index, float value) {
         this.blockPos = blockPos;
-        this.position = position;
-        this.rotation = rotation;
-        this.scale = scale;
+        this.index = index;
+        this.value = value;
     }
+
 
     @Override
     public void fromBytes(ByteBuf buf) {
         this.blockPos = BlockPos.fromLong(buf.readLong());
-        this.position = new Vector3f(buf.readFloat(), buf.readFloat(), buf.readFloat());
-        this.rotation = new Vector3f(buf.readFloat(), buf.readFloat(), buf.readFloat());
-        this.scale = buf.readFloat();
+        this.index = buf.readByte();
+        this.value = buf.readFloat();
     }
 
     @Override
     public void toBytes(ByteBuf buf) {
         buf.writeLong(this.blockPos.toLong());
-
-        buf.writeFloat(this.position.x);
-        buf.writeFloat(this.position.y);
-        buf.writeFloat(this.position.z);
-
-        buf.writeFloat(this.rotation.x);
-        buf.writeFloat(this.rotation.y);
-        buf.writeFloat(this.rotation.z);
-
-        buf.writeFloat(this.scale);
+        buf.writeByte(this.index);
+        buf.writeFloat(this.value);
     }
+
 
     public static class Handler extends WorldModificationsMessageHandler<S4SyncBlockProperties, S4SyncBlockProperties>  {
 
@@ -61,13 +52,11 @@ public class S4SyncBlockProperties implements IMessage {
         protected void handleMessage(S4SyncBlockProperties message, MessageContext ctx, World world, EntityPlayer player) {
             TileEntity entity = world.getTileEntity(message.blockPos);
             if(entity instanceof TaxidermyBlockEntity) {
-                ((TaxidermyBlockEntity) entity).setTranslation(message.position);
-                ((TaxidermyBlockEntity) entity).setRotation(message.rotation);
-                ((TaxidermyBlockEntity) entity).setScale(message.scale);
+                ((TaxidermyBlockEntity) entity).setProperty(message.index, message.value);
             }
             GuiScreen screen = Minecraft.getMinecraft().currentScreen;
             if(screen instanceof GuiTaxidermyBlock && ((GuiTaxidermyBlock) screen).getBlockEntity().getPos().equals(message.blockPos)) {
-                ((GuiTaxidermyBlock) screen).setProperties(message.position, message.rotation, message.scale);
+                ((GuiTaxidermyBlock) screen).setProperties(message.index, message.value);
             }
         }
     }

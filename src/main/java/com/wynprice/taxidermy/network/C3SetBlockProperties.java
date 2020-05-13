@@ -1,7 +1,7 @@
 package com.wynprice.taxidermy.network;
 
-import com.wynprice.taxidermy.TaxidermyBlockEntity;
 import com.wynprice.taxidermy.TabulaTaxidermy;
+import com.wynprice.taxidermy.TaxidermyBlockEntity;
 import io.netty.buffer.ByteBuf;
 import net.dumbcode.dumblibrary.server.network.WorldModificationsMessageHandler;
 import net.minecraft.entity.player.EntityPlayer;
@@ -11,46 +11,33 @@ import net.minecraft.world.World;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
 
-import javax.vecmath.Vector3f;
-
 public class C3SetBlockProperties implements IMessage {
 
     private BlockPos blockPos;
-    private Vector3f position;
-    private Vector3f rotation;
-    private float scale;
+    private int index;
+    private float value;
 
     public C3SetBlockProperties() {
     }
 
-    public C3SetBlockProperties(BlockPos blockPos, Vector3f position, Vector3f rotation, float scale) {
+    public C3SetBlockProperties(BlockPos blockPos, int index, float value) {
         this.blockPos = blockPos;
-        this.position = position;
-        this.rotation = rotation;
-        this.scale = scale;
+        this.index = index;
+        this.value = value;
     }
 
     @Override
     public void fromBytes(ByteBuf buf) {
         this.blockPos = BlockPos.fromLong(buf.readLong());
-        this.position = new Vector3f(buf.readFloat(), buf.readFloat(), buf.readFloat());
-        this.rotation = new Vector3f(buf.readFloat(), buf.readFloat(), buf.readFloat());
-        this.scale = buf.readFloat();
+        this.index = buf.readByte();
+        this.value = buf.readFloat();
     }
 
     @Override
     public void toBytes(ByteBuf buf) {
         buf.writeLong(this.blockPos.toLong());
-
-        buf.writeFloat(this.position.x);
-        buf.writeFloat(this.position.y);
-        buf.writeFloat(this.position.z);
-
-        buf.writeFloat(this.rotation.x);
-        buf.writeFloat(this.rotation.y);
-        buf.writeFloat(this.rotation.z);
-
-        buf.writeFloat(this.scale);
+        buf.writeByte(this.index);
+        buf.writeFloat(this.value);
     }
 
     public static class Handler extends WorldModificationsMessageHandler<C3SetBlockProperties, C3SetBlockProperties>  {
@@ -59,12 +46,10 @@ public class C3SetBlockProperties implements IMessage {
         protected void handleMessage(C3SetBlockProperties message, MessageContext ctx, World world, EntityPlayer player) {
             TileEntity entity = world.getTileEntity(message.blockPos);
             if(entity instanceof TaxidermyBlockEntity) {
-                ((TaxidermyBlockEntity) entity).setTranslation(message.position);
-                ((TaxidermyBlockEntity) entity).setRotation(message.rotation);
-                ((TaxidermyBlockEntity) entity).setScale(message.scale);
+                ((TaxidermyBlockEntity) entity).setProperty(message.index, message.value);
                 entity.markDirty();
             }
-            TabulaTaxidermy.NETWORK.sendToDimension(new S4SyncBlockProperties(message.blockPos, message.position, message.rotation, message.scale), world.provider.getDimension());
+            TabulaTaxidermy.NETWORK.sendToDimension(new S4SyncBlockProperties(message.blockPos, message.index, message.value), world.provider.getDimension());
         }
     }
 }

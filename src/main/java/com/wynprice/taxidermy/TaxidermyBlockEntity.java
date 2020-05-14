@@ -85,7 +85,7 @@ public class TaxidermyBlockEntity extends BaseTaxidermyBlockEntity {
 
     @Override
     public double getMaxRenderDistanceSquared() {
-        return 65536.0D;
+        return Long.MAX_VALUE;
     }
 
     public void setProperty(int index, float value) {

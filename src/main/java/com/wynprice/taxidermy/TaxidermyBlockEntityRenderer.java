@@ -42,25 +42,7 @@ public class TaxidermyBlockEntityRenderer extends TileEntitySpecialRenderer<Taxi
                 for(TabulaModelRenderer box : model.getAllCubes()) {
                     TaxidermyHistory.CubeProps cubeProps = poseData.get(box.boxName);
                     if(cubeProps != null) {
-                        if(!Float.isNaN(cubeProps.getAngle().x)) {
-                            box.rotateAngleX = cubeProps.getAngle().x;
-                        }
-                        if(!Float.isNaN(cubeProps.getAngle().y)) {
-                            box.rotateAngleY = cubeProps.getAngle().y;
-                        }
-                        if(!Float.isNaN(cubeProps.getAngle().z)) {
-                            box.rotateAngleZ= cubeProps.getAngle().z;
-                        }
-
-                        if(!Float.isNaN(cubeProps.getRotationPoint().x)) {
-                            box.rotationPointX = cubeProps.getRotationPoint().x;
-                        }
-                        if(!Float.isNaN(cubeProps.getRotationPoint().y)) {
-                            box.rotationPointY = cubeProps.getRotationPoint().y;
-                        }
-                        if(!Float.isNaN(cubeProps.getRotationPoint().z)) {
-                            box.rotationPointZ = cubeProps.getRotationPoint().z;
-                        }
+                        cubeProps.applyTo(box);
                     } else {
                         box.resetRotations();
                     }
@@ -69,11 +51,10 @@ public class TaxidermyBlockEntityRenderer extends TileEntitySpecialRenderer<Taxi
                 model.renderBoxes(1/16F);
             } else {
                 model.resetAnimations();
+                TaxidermyClientCache.TEXTURE.get(te.getTextureUUID()).ifPresent(te::setTexture);
             }
-
         } else {
             TaxidermyClientCache.MODEL.get(te.getModelUUID()).ifPresent(te::setModel);
-            TaxidermyClientCache.TEXTURE.get(te.getTextureUUID()).ifPresent(te::setTexture);
         }
 
         GlStateManager.popMatrix();

@@ -61,8 +61,8 @@ public class TaxidermyBlockEntity extends BaseTaxidermyBlockEntity {
         nbt.setUniqueId("Texture", this.textureUUID);
 
         nbt.setFloat("TranslationX", this.translation.x);
-        nbt.setFloat("TranslationY", this.translation.z);
-        nbt.setFloat("TranslationZ", this.translation.y);
+        nbt.setFloat("TranslationY", this.translation.y);
+        nbt.setFloat("TranslationZ", this.translation.z);
 
         nbt.setFloat("RotationX", this.rotation.x);
         nbt.setFloat("RotationY", this.rotation.y);

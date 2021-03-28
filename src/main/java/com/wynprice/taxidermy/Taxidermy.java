@@ -1,6 +1,7 @@
 package com.wynprice.taxidermy;
 
 import com.wynprice.taxidermy.network.*;
+import net.dumbcode.dumblibrary.DumbLibrary;
 import net.dumbcode.dumblibrary.server.network.SplitNetworkHandler;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
@@ -64,6 +65,10 @@ public class Taxidermy {
         IEventBus forgeBus = MinecraftForge.EVENT_BUS;
 
         forgeBus.addListener(this::preInit);
+
+        B.register(bus);
+        I.register(bus);
+        T.register(bus);
     }
 
     public void preInit(FMLCommonSetupEvent event) {

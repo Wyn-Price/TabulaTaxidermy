@@ -1,49 +1,39 @@
 package com.wynprice.taxidermy.network;
 
 import com.wynprice.taxidermy.DataHandler;
-import io.netty.buffer.ByteBuf;
+import lombok.AllArgsConstructor;
 import net.dumbcode.dumblibrary.server.network.SplitNetworkHandler;
-import net.dumbcode.dumblibrary.server.network.WorldModificationsMessageHandler;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.network.PacketBuffer;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
-import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
+import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraftforge.fml.network.PacketDistributor;
 
 import java.util.UUID;
+import java.util.function.Supplier;
 
-public class C1RequestDataForUUID implements IMessage {
+@AllArgsConstructor
+public class C1RequestDataForUUID {
 
     private UUID uuid;
     private DataHandler<?> dataHandler;
 
-    public C1RequestDataForUUID() {
+    public static C1RequestDataForUUID fromBytes(PacketBuffer buf) {
+        return new C1RequestDataForUUID(buf.readUUID(), DataHandler.read(buf));
     }
 
-    public C1RequestDataForUUID(UUID uuid, DataHandler<?> dataHandler) {
-        this.uuid = uuid;
-        this.dataHandler = dataHandler;
+    public static void toBytes(C1RequestDataForUUID packet, PacketBuffer buf) {
+        buf.writeUUID(packet.uuid);
+        DataHandler.write(buf, packet.dataHandler);
     }
 
-    @Override
-    public void fromBytes(ByteBuf buf) {
-        this.uuid = new UUID(buf.readLong(), buf.readLong());
-        this.dataHandler = DataHandler.read(buf);
+    public static void handle(C1RequestDataForUUID message, Supplier<NetworkEvent.Context> supplier) {
+        NetworkEvent.Context context = supplier.get();
+        context.enqueueWork(() -> {
+            World world = context.getSender().level;
+            message.dataHandler.createHandler(message.uuid).ifPresent(h -> {
+                SplitNetworkHandler.sendSplitMessage(new S2SendDataToClient(message.uuid, h), PacketDistributor.DIMENSION.with(world::dimension));
+            });
+        });
     }
 
-    @Override
-    public void toBytes(ByteBuf buf) {
-        buf.writeLong(this.uuid.getMostSignificantBits());
-        buf.writeLong(this.uuid.getLeastSignificantBits());
-        DataHandler.write(buf, this.dataHandler);
-    }
-
-    public static class Handler extends WorldModificationsMessageHandler<C1RequestDataForUUID, C1RequestDataForUUID> {
-
-        @Override
-        protected void handleMessage(C1RequestDataForUUID message, MessageContext ctx, World world, EntityPlayer player) {
-            message.dataHandler.createHandler(world, message.uuid).ifPresent(h ->
-                SplitNetworkHandler.sendSplitMessage(new S2SendDataToClient(message.uuid, h), (wrapper, m) -> wrapper.sendToDimension(m, world.provider.getDimension()))
-            );
-        }
-    }
 }

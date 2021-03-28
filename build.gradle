@@ -120,6 +120,7 @@ dependencies {
     minecraft 'net.minecraftforge:forge:1.16.5-36.1.0'
 
     compile 'org.projectlombok:lombok:1.18.12'
+    annotationProcessor 'org.projectlombok:lombok:1.18.12'
     compile group: 'org.apache.commons', name: 'commons-collections4', version: '4.0'
     compile project('dumb_library')
 

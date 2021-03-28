@@ -2,16 +2,15 @@ package com.wynprice.taxidermy;
 
 import lombok.Getter;
 import lombok.Setter;
-import net.dumbcode.dumblibrary.client.model.tabula.TabulaModel;
+import net.dumbcode.dumblibrary.client.model.dcm.DCMModel;
 import net.dumbcode.dumblibrary.server.taxidermy.BaseTaxidermyBlockEntity;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.block.BlockState;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.tileentity.TileEntityType;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.util.math.vector.Vector3f;
 
-import javax.vecmath.Vector3f;
 import java.util.UUID;
 
 @Getter
@@ -27,56 +26,58 @@ public class TaxidermyBlockEntity extends BaseTaxidermyBlockEntity {
     private float scale = 1F;
 
     private ResourceLocation texture;
-    private TabulaModel model;
+    private DCMModel model;
+
+    public TaxidermyBlockEntity() {
+        super(Taxidermy.BLOCK_ENTITY.get());
+    }
 
     public void setModelUUID(UUID modelUUID) {
         this.modelUUID = modelUUID;
-        if(this.world != null && this.world.isRemote) {
+        if(this.level != null && this.level.isClientSide) {
             this.model = null;
         }
     }
 
     public void setTextureUUID(UUID textureUUID) {
         this.textureUUID = textureUUID;
-        if(this.world != null && this.world.isRemote) {
+        if(this.level != null && this.level.isClientSide) {
             this.texture = null;
         }
     }
 
     @Override
-    public void readFromNBT(NBTTagCompound nbt) {
-        super.readFromNBT(nbt);
+    public void load(BlockState state, CompoundNBT compound) {
+        this.setModelUUID(compound.getUUID("Model"));
+        this.setTextureUUID(compound.getUUID("Texture"));
 
-        this.setModelUUID(nbt.getUniqueId("Model"));
-        this.setTextureUUID(nbt.getUniqueId("Texture"));
-
-        this.translation = new Vector3f(nbt.getFloat("TranslationX"), nbt.getFloat("TranslationY"), nbt.getFloat("TranslationZ"));
-        this.rotation = new Vector3f(nbt.getFloat("RotationX"), nbt.getFloat("RotationY"), nbt.getFloat("RotationZ"));
-        this.scale = nbt.getFloat("Scale");
+        this.translation = new Vector3f(compound.getFloat("TranslationX"), compound.getFloat("TranslationY"), compound.getFloat("TranslationZ"));
+        this.rotation = new Vector3f(compound.getFloat("RotationX"), compound.getFloat("RotationY"), compound.getFloat("RotationZ"));
+        this.scale = compound.getFloat("Scale");
+        super.load(state, compound);
     }
 
     @Override
-    public NBTTagCompound writeToNBT(NBTTagCompound nbt) {
-        nbt.setUniqueId("Model", this.modelUUID);
-        nbt.setUniqueId("Texture", this.textureUUID);
+    public CompoundNBT save(CompoundNBT nbt) {
+        nbt.putUUID("Model", this.modelUUID);
+        nbt.putUUID("Texture", this.textureUUID);
 
-        nbt.setFloat("TranslationX", this.translation.x);
-        nbt.setFloat("TranslationY", this.translation.y);
-        nbt.setFloat("TranslationZ", this.translation.z);
+        nbt.putFloat("TranslationX", this.translation.x());
+        nbt.putFloat("TranslationY", this.translation.y());
+        nbt.putFloat("TranslationZ", this.translation.z());
 
-        nbt.setFloat("RotationX", this.rotation.x);
-        nbt.setFloat("RotationY", this.rotation.y);
-        nbt.setFloat("RotationZ", this.rotation.z);
+        nbt.putFloat("RotationX", this.rotation.x());
+        nbt.putFloat("RotationY", this.rotation.y());
+        nbt.putFloat("RotationZ", this.rotation.z());
 
-        nbt.setFloat("Scale", this.scale);
-
-        return super.writeToNBT(nbt);
+        nbt.putFloat("Scale", this.scale);
+        return super.save(nbt);
     }
 
-    @Override
-    public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newSate) {
-        return oldState.getBlock() != newSate.getBlock();
-    }
+//    @Override
+//    public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newSate) {
+//        return oldState.getBlock() != newSate.getBlock();
+//    }
 
     @Override
     public AxisAlignedBB getRenderBoundingBox() {
@@ -84,23 +85,25 @@ public class TaxidermyBlockEntity extends BaseTaxidermyBlockEntity {
     }
 
     @Override
-    public double getMaxRenderDistanceSquared() {
+    public double getViewDistance() {
         return Long.MAX_VALUE;
     }
 
     public void setProperty(int index, float value) {
         if(index >= 0 && index < 3) {
-            float[] arr = new float[3];
-            this.translation.get(arr);
+            float[] arr = this.get(this.translation);
             arr[index] = value;
             this.translation.set(arr);
         } else if(index >= 3 && index < 6) {
-            float[] arr = new float[3];
-            this.rotation.get(arr);
+            float[] arr = this.get(this.rotation);
             arr[index - 3] = value;
             this.rotation.set(arr);
         } else if(index == 6) {
             this.scale = value;
         }
+    }
+
+    private float[] get(Vector3f vec) {
+        return new float[]{ vec.x(), vec.y(), vec.z() };
     }
 }

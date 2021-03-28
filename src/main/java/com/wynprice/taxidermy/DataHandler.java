@@ -1,33 +1,39 @@
 package com.wynprice.taxidermy;
 
 import com.google.gson.*;
-import io.netty.buffer.ByteBuf;
-import lombok.Cleanup;
 import lombok.Getter;
-import net.dumbcode.dumblibrary.server.animation.TabulaUtils;
-import net.dumbcode.dumblibrary.server.tabula.TabulaBufferHandler;
-import net.dumbcode.dumblibrary.server.tabula.TabulaModelInformation;
+import net.dumbcode.dumblibrary.server.utils.DCMBufferHandler;
 import net.dumbcode.dumblibrary.server.utils.ImageBufferHandler;
-import net.minecraft.util.JsonUtils;
-import net.minecraft.world.World;
-import org.apache.commons.io.FileUtils;
+import net.dumbcode.studio.model.ModelInfo;
+import net.dumbcode.studio.model.ModelLoader;
+import net.dumbcode.studio.model.ModelWriter;
+import net.minecraft.client.renderer.texture.NativeImage;
+import net.minecraft.network.PacketBuffer;
+import net.minecraft.util.JSONUtils;
+import net.minecraft.world.storage.FolderName;
+import net.minecraftforge.fml.server.ServerLifecycleHooks;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 public class DataHandler<O> {
-    public static final DataHandler<BufferedImage> TEXTURE = new DataHandler<>(
+    private static final FolderName TAXIDERMY_STORAGE = new FolderName("taxidermy_storage");
+    public static final DataHandler<NativeImage> TEXTURE = new DataHandler<>(
         "texture", ".png", TaxidermyBlockEntity::setTextureUUID, ImageBufferHandler.INSTANCE,
-        (img, stream) -> ImageIO.write(img, "PNG", stream), ImageIO::read
+        (img, stream) -> stream.write(img.asByteArray()), NativeImage::read
     );
 
-    public static final DataHandler<TabulaModelInformation> MODEL = new DataHandler<>(
-        "model", ".tbl", TaxidermyBlockEntity::setModelUUID, TabulaBufferHandler.INSTANCE,
-        TabulaUtils::writeToStream, TabulaUtils::getModelInformation
+    public static final DataHandler<ModelInfo> MODEL = new DataHandler<>(
+        "model", ".tbl", TaxidermyBlockEntity::setModelUUID, DCMBufferHandler.INSTANCE,
+        ModelWriter::writeModel, ModelLoader::loadModel
     );
 
     public static final DataHandler[] HANDLERS = { TEXTURE, MODEL };
@@ -41,12 +47,12 @@ public class DataHandler<O> {
     private final BiConsumer<TaxidermyBlockEntity, UUID> uuidSetter;
 
     //IO Stuff:
-    private final BiConsumer<ByteBuf, O> seralizer;
-    private final Function<ByteBuf, O> deseralizer;
+    private final BiConsumer<PacketBuffer, O> seralizer;
+    private final Function<PacketBuffer, O> deseralizer;
     private final ThrowableBiConsumer<O, OutputStream> filsSeralizer;
     private final ThrowableFunction<InputStream, O> fileDeseralizer;
 
-    public <T extends BiConsumer<ByteBuf, O> & Function<ByteBuf, O>> DataHandler(
+    public <T extends BiConsumer<PacketBuffer, O> & Function<PacketBuffer, O>> DataHandler(
         String typeName, String extension, BiConsumer<TaxidermyBlockEntity, UUID> uuidSetter, T handler,
         ThrowableBiConsumer<O, OutputStream> filsSeralizer, ThrowableFunction<InputStream, O> fileDeseralizer
     ) {
@@ -59,106 +65,104 @@ public class DataHandler<O> {
         this.fileDeseralizer = fileDeseralizer;
     }
 
-    public File getBaseFolder(World world) {
-        File file =  new File(world.getSaveHandler().getWorldDirectory(), "taxidermy_storage/" + this.typeName);
-        if(!file.exists()) {
+    public Path getBaseFolder() {
+        Path path = ServerLifecycleHooks.getCurrentServer().getWorldPath(TAXIDERMY_STORAGE).resolve(this.typeName);
+        if(!Files.exists(path)) {
             try {
-                FileUtils.forceMkdir(file);
+                Files.createDirectories(path);
             } catch (IOException e) {
                 //Maybe don't throw exception?
-                throw new IllegalArgumentException("Unable to create base folder at file '" + file.getAbsolutePath() + "'", e);
+                throw new IllegalArgumentException("Unable to create base folder at file '" + path.toAbsolutePath() + "'", e);
             }
         }
-        return file;
+        return path;
     }
 
-    private File getUUIDFile(World world, UUID uuid) {
-        return new File(this.getBaseFolder(world), uuid.toString().replaceAll("-", "") + this.extension);
+    private Path getUUIDFile(UUID uuid) {
+        return this.getBaseFolder().resolve(uuid.toString().replaceAll("-", "") + this.extension);
     }
 
-    private File getJsonFile(World world) {
-        return new File(this.getBaseFolder(world), "data.json");
+    private Path getJsonFile() {
+        return this.getBaseFolder().resolve("data.json");
     }
 
-    public List<DataHeader> getHeaders(World world) {
-        File file = this.getJsonFile(world);
+    public List<DataHeader> getHeaders() {
+        Path path = this.getJsonFile();
 
         List<DataHeader> headers = new ArrayList<>();
         try {
-            if(file.exists()) {
+            if(Files.exists(path)) {
                 JsonParser parser = new JsonParser();
-                for (Map.Entry<String, JsonElement> entry : parser.parse(new FileReader(file)).getAsJsonObject().entrySet()) {
+                for (Map.Entry<String, JsonElement> entry : parser.parse(Files.newBufferedReader(path)).getAsJsonObject().entrySet()) {
                     JsonObject json = entry.getValue().getAsJsonObject();
-                    headers.add(new DataHeader(UUID.fromString(entry.getKey()), JsonUtils.getString(json, "name"), JsonUtils.getString(json, "uploader")));
+                    headers.add(new DataHeader(UUID.fromString(entry.getKey()), JSONUtils.getAsString(json, "name"), JSONUtils.getAsString(json, "uploader")));
                 }
             }
         } catch (IOException e) {
-            TabulaTaxidermy.getLogger().error("Unable to read data file at '" + file.getAbsolutePath() + "'", e);
+            Taxidermy.getLogger().error("Unable to read data file at '" + path.toAbsolutePath() + "'", e);
         }
         return headers;
     }
 
-    private void writeHeaders(World world, List<DataHeader> headers) {
-        File file = this.getJsonFile(world);
+    private void writeHeaders(List<DataHeader> headers) {
+        Path path = this.getJsonFile();
+        JsonObject json = new JsonObject();
+        for (DataHeader header : headers) {
+            JsonObject obj = new JsonObject();
+            json.add(header.getUuid().toString(), obj);
+
+            obj.addProperty("name", header.getName());
+            obj.addProperty("uploader", header.getUploader());
+        }
+
         try {
-            @Cleanup FileWriter writer = new FileWriter(file);
-
-            JsonObject json = new JsonObject();
-            for (DataHeader header : headers) {
-                JsonObject obj = new JsonObject();
-                json.add(header.getUuid().toString(), obj);
-
-                obj.addProperty("name", header.getName());
-                obj.addProperty("uploader", header.getUploader());
-            }
-
-            writer.write(GSON.toJson(json));
+            Files.write(path, Collections.singleton(GSON.toJson(json)));
         } catch (IOException e) {
-            TabulaTaxidermy.getLogger().error("Unable to write data file at '" + file.getAbsolutePath() + "'", e);
+            Taxidermy.getLogger().error("Unable to write data file at '" + path.toAbsolutePath() + "'", e);
         }
     }
 
-    public void appendJsonFile(World world, UUID uuid, String name, String uploader) {
-        List<DataHeader> headers = this.getHeaders(world);
+    public void appendJsonFile(UUID uuid, String name, String uploader) {
+        List<DataHeader> headers = this.getHeaders();
         headers.add(new DataHeader(uuid, name, uploader));
-        this.writeHeaders(world, headers);
+        this.writeHeaders(headers);
     }
 
     public void applyTo(TaxidermyBlockEntity blockEntity, UUID uuid) {
         this.uuidSetter.accept(blockEntity, uuid);
     }
 
-    public Optional<Handler<O>> createHandler(World world, UUID uuid) {
-        return this.createHandler(this.getUUIDFile(world, uuid));
+    public Optional<Handler<O>> createHandler(UUID uuid) {
+        return this.createHandler(this.getUUIDFile(uuid));
     }
 
-    public Optional<Handler<O>> createHandler(File file) {
+    public Optional<Handler<O>> createHandler(Path file) {
         try {
-            return Optional.ofNullable(this.fileDeseralizer.apply(new FileInputStream(file))).map(o -> new Handler<>(o, this));
+            return Optional.ofNullable(this.fileDeseralizer.apply(Files.newInputStream(file))).map(o -> new Handler<>(o, this));
         } catch (IOException e) {
-            TabulaTaxidermy.getLogger().error("Unable to read file '" + file.getAbsolutePath() + "'", e);
+            Taxidermy.getLogger().error("Unable to read file '" + file.toAbsolutePath() + "'", e);
         }
         return Optional.empty();
     }
 
-    private Handler<O> createHandlerFromBuf(ByteBuf buf) {
+    private Handler<O> createHandlerFromBuf(PacketBuffer buf) {
         return new Handler<>(this.deseralizer.apply(buf), this);
     }
 
-    public static void write(ByteBuf buf, DataHandler<?> handler) {
+    public static void write(PacketBuffer buf, DataHandler<?> handler) {
         buf.writeBoolean(handler == TEXTURE);
     }
 
-    public static DataHandler<?> read(ByteBuf buf) {
+    public static DataHandler<?> read(PacketBuffer buf) {
         return buf.readBoolean() ? TEXTURE : MODEL;
     }
 
-    public static <O> void writeHandler(ByteBuf buf, Handler<O> handler) {
+    public static <O> void writeHandler(PacketBuffer buf, Handler<O> handler) {
         write(buf, handler.parent);
         handler.parent.seralizer.accept(buf, handler.object);
     }
 
-    public static Handler<?> readHandler(ByteBuf buf) {
+    public static Handler<?> readHandler(PacketBuffer buf) {
         return read(buf).createHandlerFromBuf(buf);
     }
 
@@ -176,15 +180,15 @@ public class DataHandler<O> {
             this.parent.applyTo(blockEntity, uuid);
         }
 
-        public void saveToFile(World world, UUID uuid, String name, String uploader) {
-            File file = this.parent.getUUIDFile(world, uuid);
+        public void saveToFile(UUID uuid, String name, String uploader) {
+            Path path = this.parent.getUUIDFile(uuid);
             try {
-                this.parent.filsSeralizer.accept(this.object, new FileOutputStream(file));
+                this.parent.filsSeralizer.accept(this.object, Files.newOutputStream(path));
             } catch (IOException e) {
-                TabulaTaxidermy.getLogger().error("Unable to write object type '" + this.parent.typeName + "' to " + file.getAbsolutePath(), e);
+                Taxidermy.getLogger().error("Unable to write object type '" + this.parent.typeName + "' to " + path.toAbsolutePath(), e);
             }
 
-            this.parent.appendJsonFile(world, uuid, name, uploader);
+            this.parent.appendJsonFile(uuid, name, uploader);
         }
 
     }

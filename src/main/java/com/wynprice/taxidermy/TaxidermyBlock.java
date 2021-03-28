@@ -1,98 +1,88 @@
 package com.wynprice.taxidermy;
 
-import net.minecraft.block.BlockContainer;
-import net.minecraft.block.material.Material;
-import net.minecraft.block.properties.PropertyBool;
-import net.minecraft.block.state.BlockStateContainer;
-import net.minecraft.block.state.IBlockState;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.ContainerBlock;
 import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.state.BooleanProperty;
+import net.minecraft.state.StateContainer;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.BlockRenderLayer;
-import net.minecraft.util.EnumBlockRenderType;
-import net.minecraft.util.EnumFacing;
-import net.minecraft.util.EnumHand;
-import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Direction;
+import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockAccess;
+import net.minecraft.util.math.BlockRayTraceResult;
+import net.minecraft.util.math.shapes.ISelectionContext;
+import net.minecraft.util.math.shapes.VoxelShape;
+import net.minecraft.util.math.shapes.VoxelShapes;
+import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
 
 import javax.annotation.Nullable;
 
-public class TaxidermyBlock extends BlockContainer {
+public class TaxidermyBlock extends ContainerBlock {
 
-    public static final PropertyBool HIDDEN = PropertyBool.create("hidden");
+    public static final BooleanProperty HIDDEN = BooleanProperty.create("hidden");
 
-    public TaxidermyBlock(Material materialIn) {
-        super(materialIn);
-        this.setDefaultState(this.getBlockState().getBaseState().withProperty(HIDDEN, false));
+    protected TaxidermyBlock(Properties properties) {
+        super(properties);
+        this.registerDefaultState(this.defaultBlockState().setValue(HIDDEN, false));
     }
 
     @Override
-    public boolean onBlockActivated(World worldIn, BlockPos pos, IBlockState state, EntityPlayer playerIn, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
-        TileEntity entity = worldIn.getTileEntity(pos);
-        if(worldIn.isRemote && entity instanceof TaxidermyBlockEntity) {
+    protected void createBlockStateDefinition(StateContainer.Builder<Block, BlockState> builder) {
+        builder.add(HIDDEN);
+    }
+
+    @Override
+    public ActionResultType use(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockRayTraceResult ray) {
+        TileEntity entity = world.getBlockEntity(pos);
+        if(world.isClientSide && entity instanceof TaxidermyBlockEntity) {
             this.displayGui((TaxidermyBlockEntity) entity);
         }
-        return true;
+        return ActionResultType.SUCCESS;
     }
 
-    @SideOnly(Side.CLIENT)
     private void displayGui(TaxidermyBlockEntity entity) {
-        Minecraft.getMinecraft().displayGuiScreen(new GuiTaxidermyBlock(entity));
+        Minecraft.getInstance().setScreen(new GuiTaxidermyBlock(entity));
+    }
+
+
+    @Override
+    public boolean skipRendering(BlockState state, BlockState p_200122_2_, Direction p_200122_3_) {
+        return state.getValue(HIDDEN);
     }
 
     @Override
-    protected BlockStateContainer createBlockState() {
-        return new BlockStateContainer(this, HIDDEN);
-    }
-
-    @Override
-    public boolean canRenderInLayer(IBlockState state, BlockRenderLayer layer) {
-        return !state.getValue(HIDDEN) && super.canRenderInLayer(state, layer);
-    }
-
-    @Override
-    public EnumBlockRenderType getRenderType(IBlockState state) {
-        return EnumBlockRenderType.MODEL;
-    }
-
-    @Override
-    public boolean isFullCube(IBlockState state) {
+    public boolean propagatesSkylightDown(BlockState state, IBlockReader reader, BlockPos pos) {
         return false;
     }
 
     @Override
-    public boolean isOpaqueCube(IBlockState state) {
-        return false;
+    public int getLightBlock(BlockState state, IBlockReader world, BlockPos pos) {
+        return 0;
+    }
+
+    //    @Override
+//    public boolean isFullCube(IBlockState state) {
+//        return false;
+//    }
+//
+//    @Override
+//    public boolean isOpaqueCube(IBlockState state) {
+//        return false;
+//    }
+
+
+    @Override
+    public VoxelShape getCollisionShape(BlockState p_220071_1_, IBlockReader p_220071_2_, BlockPos p_220071_3_, ISelectionContext p_220071_4_) {
+        return VoxelShapes.empty();
     }
 
     @Nullable
     @Override
-    public AxisAlignedBB getCollisionBoundingBox(IBlockState blockState, IBlockAccess worldIn, BlockPos pos) {
-        return NULL_AABB;
-    }
-
-    @Override
-    public boolean hasTileEntity(IBlockState state) {
-        return true;
-    }
-
-    @Nullable
-    @Override
-    public TileEntity createNewTileEntity(World worldIn, int meta) {
+    public TileEntity newBlockEntity(IBlockReader p_196283_1_) {
         return new TaxidermyBlockEntity();
-    }
-
-    @Override
-    public int getMetaFromState(IBlockState state) {
-        return state.getValue(HIDDEN) ? 1 : 0;
-    }
-
-    @Override
-    public IBlockState getStateFromMeta(int meta) {
-        return this.getDefaultState().withProperty(HIDDEN, meta == 1);
     }
 }

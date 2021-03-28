@@ -4,54 +4,47 @@ import com.wynprice.taxidermy.DataHandler;
 import com.wynprice.taxidermy.DataHeader;
 import com.wynprice.taxidermy.GuiTaxidermyBlock;
 import io.netty.buffer.ByteBuf;
+import lombok.AllArgsConstructor;
 import net.minecraft.client.Minecraft;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessageHandler;
-import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.network.PacketBuffer;
+import net.minecraftforge.fml.network.NetworkEvent;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
-public class S6SendHeaders implements IMessage {
+@AllArgsConstructor
+public class S6SendHeaders {
 
     private DataHandler<?> handler;
     private List<DataHeader> headers;
 
-    public S6SendHeaders() {
+    public static S6SendHeaders fromBytes(PacketBuffer buf) {
+        return new S6SendHeaders(
+            DataHandler.read(buf),
+            IntStream.range(0, buf.readShort())
+                .mapToObj(i -> DataHeader.readFromBuf(buf))
+                .collect(Collectors.toList())
+        );
     }
 
-    public S6SendHeaders(DataHandler<?> handler, List<DataHeader> headers) {
-        this.handler = handler;
-        this.headers = headers;
-    }
-
-    @Override
-    public void fromBytes(ByteBuf buf) {
-        this.handler = DataHandler.read(buf);
-        this.headers = new ArrayList<>();
-        int size = buf.readShort();
-        for (int i = 0; i < size; i++) {
-            this.headers.add(DataHeader.readFromBuf(buf));
-        }
-    }
-
-    @Override
-    public void toBytes(ByteBuf buf) {
-        DataHandler.write(buf, this.handler);
-        buf.writeShort(this.headers.size());
-        for (DataHeader header : this.headers) {
+    public static void toBytes(S6SendHeaders packet, PacketBuffer buf) {
+        DataHandler.write(buf, packet.handler);
+        buf.writeShort(packet.headers.size());
+        for (DataHeader header : packet.headers) {
             DataHeader.writeToBuf(header, buf);
         }
     }
 
-    public static class Handler implements IMessageHandler<S6SendHeaders, IMessage> {
-
-        @Override
-        public IMessage onMessage(S6SendHeaders message, MessageContext ctx) {
-            if(Minecraft.getMinecraft().currentScreen instanceof GuiTaxidermyBlock) {
-                ((GuiTaxidermyBlock) Minecraft.getMinecraft().currentScreen).setList(message.handler, message.headers);
+    public static void handle(S6SendHeaders message, Supplier<NetworkEvent.Context> supplier) {
+        NetworkEvent.Context context = supplier.get();
+        context.enqueueWork(() -> {
+            Screen screen = Minecraft.getInstance().screen;
+            if(screen instanceof GuiTaxidermyBlock) {
+                ((GuiTaxidermyBlock) screen).setList(message.handler, message.headers);
             }
-            return null;
-        }
+        });
     }
 }

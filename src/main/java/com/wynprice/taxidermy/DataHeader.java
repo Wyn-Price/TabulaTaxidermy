@@ -2,6 +2,7 @@ package com.wynprice.taxidermy;
 
 import io.netty.buffer.ByteBuf;
 import lombok.Value;
+import net.minecraft.network.PacketBuffer;
 import net.minecraftforge.fml.common.network.ByteBufUtils;
 
 import java.util.UUID;
@@ -12,18 +13,17 @@ public class DataHeader {
     private final String name;
     private final String uploader;
 
-    public static void writeToBuf(DataHeader header, ByteBuf buf) {
-        buf.writeLong(header.getUuid().getMostSignificantBits());
-        buf.writeLong(header.getUuid().getLeastSignificantBits());
-        ByteBufUtils.writeUTF8String(buf, header.getName());
-        ByteBufUtils.writeUTF8String(buf, header.getUploader());
+    public static void writeToBuf(DataHeader header, PacketBuffer buf) {
+        buf.writeUUID(header.getUuid());
+        buf.writeUtf(header.getName());
+        buf.writeUtf(header.getUploader());
     }
 
-    public static DataHeader readFromBuf(ByteBuf buf) {
+    public static DataHeader readFromBuf(PacketBuffer buf) {
         return new DataHeader(
-            new UUID(buf.readLong(), buf.readLong()),
-            ByteBufUtils.readUTF8String(buf),
-            ByteBufUtils.readUTF8String(buf)
+            buf.readUUID(),
+            buf.readUtf(),
+            buf.readUtf()
         );
     }
 }

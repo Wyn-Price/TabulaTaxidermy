@@ -1,55 +1,48 @@
 package com.wynprice.taxidermy.network;
 
-import com.wynprice.taxidermy.TabulaTaxidermy;
+import com.wynprice.taxidermy.Taxidermy;
 import com.wynprice.taxidermy.TaxidermyBlockEntity;
-import io.netty.buffer.ByteBuf;
-import net.dumbcode.dumblibrary.server.network.WorldModificationsMessageHandler;
-import net.minecraft.entity.player.EntityPlayer;
+import lombok.AllArgsConstructor;
+import net.minecraft.network.PacketBuffer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
-import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
+import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraftforge.fml.network.PacketDistributor;
 
-public class C3SetBlockProperties implements IMessage {
+import java.util.function.Supplier;
+
+@AllArgsConstructor
+public class C3SetBlockProperties {
 
     private BlockPos blockPos;
     private int index;
     private float value;
 
-    public C3SetBlockProperties() {
+    public static C3SetBlockProperties fromBytes(PacketBuffer buf) {
+        return new C3SetBlockProperties(
+            buf.readBlockPos(), buf.readByte(), buf.readFloat()
+        );
     }
 
-    public C3SetBlockProperties(BlockPos blockPos, int index, float value) {
-        this.blockPos = blockPos;
-        this.index = index;
-        this.value = value;
+    public static void toBytes(C3SetBlockProperties packet, PacketBuffer buf) {
+        buf.writeBlockPos(packet.blockPos);
+        buf.writeByte(packet.index);
+        buf.writeFloat(packet.value);
     }
 
-    @Override
-    public void fromBytes(ByteBuf buf) {
-        this.blockPos = BlockPos.fromLong(buf.readLong());
-        this.index = buf.readByte();
-        this.value = buf.readFloat();
-    }
-
-    @Override
-    public void toBytes(ByteBuf buf) {
-        buf.writeLong(this.blockPos.toLong());
-        buf.writeByte(this.index);
-        buf.writeFloat(this.value);
-    }
-
-    public static class Handler extends WorldModificationsMessageHandler<C3SetBlockProperties, C3SetBlockProperties>  {
-
-        @Override
-        protected void handleMessage(C3SetBlockProperties message, MessageContext ctx, World world, EntityPlayer player) {
-            TileEntity entity = world.getTileEntity(message.blockPos);
+    public static void handle(C3SetBlockProperties message, Supplier<NetworkEvent.Context> supplier) {
+        NetworkEvent.Context context = supplier.get();
+        context.enqueueWork(() -> {
+            World world = context.getSender().level;
+            TileEntity entity = world.getBlockEntity(message.blockPos);
             if(entity instanceof TaxidermyBlockEntity) {
                 ((TaxidermyBlockEntity) entity).setProperty(message.index, message.value);
-                entity.markDirty();
+                entity.setChanged();
             }
-            TabulaTaxidermy.NETWORK.sendToDimension(new S4SyncBlockProperties(message.blockPos, message.index, message.value), world.provider.getDimension());
-        }
+            Taxidermy.NETWORK.send(PacketDistributor.DIMENSION.with(world::dimension), new S4SyncBlockProperties(message.blockPos, message.index, message.value));
+        });
     }
+
+
 }

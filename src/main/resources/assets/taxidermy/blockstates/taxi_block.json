@@ -1,6 +1,0 @@
-{
-  "variants": {
-    "hidden=false": { "model": "taxidermy:taxi_block" },
-    "hidden=true": { "model": "taxidermy:taxi_block" }
-  }
-}

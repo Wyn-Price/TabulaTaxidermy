@@ -1,69 +1,54 @@
 package com.wynprice.taxidermy.network;
 
 import com.wynprice.taxidermy.DataHandler;
+import com.wynprice.taxidermy.Taxidermy;
 import com.wynprice.taxidermy.TaxidermyBlockEntity;
-import com.wynprice.taxidermy.TabulaTaxidermy;
-import io.netty.buffer.ByteBuf;
-import net.dumbcode.dumblibrary.server.network.WorldModificationsMessageHandler;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
+import lombok.AllArgsConstructor;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.network.PacketBuffer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.fml.common.network.ByteBufUtils;
-import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
-import net.minecraftforge.fml.common.network.simpleimpl.MessageContext;
+import net.minecraftforge.fml.network.NetworkEvent;
+import net.minecraftforge.fml.network.PacketDistributor;
 
 import java.util.UUID;
+import java.util.function.Supplier;
 
-public class C0UploadData implements IMessage {
+@AllArgsConstructor
+public class C0UploadData {
 
     private BlockPos pos;
     private UUID uuid;
     private String name;
     private DataHandler.Handler<?> handler;
 
-    public C0UploadData() {
+    public static C0UploadData fromBytes(PacketBuffer buf) {
+        return new C0UploadData(buf.readBlockPos(), buf.readUUID(), buf.readUtf(), DataHandler.readHandler(buf));
     }
 
-    public C0UploadData(BlockPos pos, UUID uuid, String name, DataHandler.Handler<?> handler) {
-        this.pos = pos;
-        this.uuid = uuid;
-        this.name = name;
-        this.handler = handler;
+    public static void toBytes(C0UploadData packet, PacketBuffer buf) {
+        buf.writeBlockPos(packet.pos);
+        buf.writeUUID(packet.uuid);
+        buf.writeUtf(packet.name);
+        DataHandler.writeHandler(buf, packet.handler);
     }
 
-    @Override
-    public void fromBytes(ByteBuf buf) {
-        this.pos = BlockPos.fromLong(buf.readLong());
-        this.uuid = new UUID(buf.readLong(), buf.readLong());
-        this.name = ByteBufUtils.readUTF8String(buf);
-        this.handler = DataHandler.readHandler(buf);
-    }
-
-    @Override
-    public void toBytes(ByteBuf buf) {
-        buf.writeLong(this.pos.toLong());
-        buf.writeLong(this.uuid.getMostSignificantBits());
-        buf.writeLong(this.uuid.getLeastSignificantBits());
-        ByteBufUtils.writeUTF8String(buf, this.name);
-        DataHandler.writeHandler(buf, this.handler);
-    }
-
-    public static class Handler extends WorldModificationsMessageHandler<C0UploadData, C0UploadData> {
-
-        @Override
-        protected void handleMessage(C0UploadData message, MessageContext ctx, World world, EntityPlayer player) {
-            TileEntity entity = world.getTileEntity(message.pos);
+    public static void handle(C0UploadData message, Supplier<NetworkEvent.Context> supplier) {
+        NetworkEvent.Context context = supplier.get();
+        context.enqueueWork(() -> {
+            ServerPlayerEntity sender = context.getSender();
+            World world = sender.level;
+            TileEntity entity = world.getBlockEntity(message.pos);
             if(entity instanceof TaxidermyBlockEntity) {
                 message.handler.applyTo((TaxidermyBlockEntity) entity, message.uuid);
-                entity.markDirty();
+                entity.setChanged();
                 ((TaxidermyBlockEntity) entity).syncToClient();
             }
-            message.handler.saveToFile(world, message.uuid, message.name, player.getName());
+            message.handler.saveToFile(message.uuid, message.name, sender.getScoreboardName());
 
             DataHandler<?> handler = message.handler.getParent();
-            TabulaTaxidermy.NETWORK.sendTo(new S6SendHeaders(handler, handler.getHeaders(world)), (EntityPlayerMP) player);
-        }
+            Taxidermy.NETWORK.send(PacketDistributor.PLAYER.with(() -> sender), new S6SendHeaders(handler, handler.getHeaders()));
+        });
     }
 }

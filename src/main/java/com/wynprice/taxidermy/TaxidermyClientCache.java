@@ -2,22 +2,22 @@ package com.wynprice.taxidermy;
 
 import com.wynprice.taxidermy.network.C1RequestDataForUUID;
 import lombok.RequiredArgsConstructor;
-import net.dumbcode.dumblibrary.client.model.tabula.TabulaModel;
-import net.dumbcode.dumblibrary.server.tabula.TabulaModelInformation;
+import net.dumbcode.dumblibrary.client.model.dcm.DCMModel;
+import net.dumbcode.studio.model.ModelInfo;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.client.renderer.texture.NativeImage;
 import net.minecraft.util.ResourceLocation;
 
-import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.function.Function;
 
 @RequiredArgsConstructor
 public class TaxidermyClientCache<F, T> {
-    public static final TaxidermyClientCache<TabulaModelInformation, TabulaModel> MODEL = new TaxidermyClientCache<>(DataHandler.MODEL, TabulaModelInformation::createModel);
+    public static final TaxidermyClientCache<ModelInfo, DCMModel> MODEL = new TaxidermyClientCache<>(DataHandler.MODEL, DCMModel::new);
 
-    public static final TaxidermyClientCache<BufferedImage, ResourceLocation> TEXTURE = new TaxidermyClientCache<>(DataHandler.TEXTURE, image ->
-        Minecraft.getMinecraft().renderEngine.getDynamicTextureLocation(TabulaTaxidermy.MODID, new DynamicTexture(image))
+    public static final TaxidermyClientCache<NativeImage, ResourceLocation> TEXTURE = new TaxidermyClientCache<>(DataHandler.TEXTURE, image ->
+        Minecraft.getInstance().textureManager.register(Taxidermy.MODID, new DynamicTexture(image))
     );
 
     private final DataHandler<F> handler;
@@ -34,7 +34,7 @@ public class TaxidermyClientCache<F, T> {
             return Optional.of(this.map.get(uuid));
         }
         if(!this.requested.contains(uuid)) {
-            TabulaTaxidermy.NETWORK.sendToServer(new C1RequestDataForUUID(uuid, this.handler));
+            Taxidermy.NETWORK.sendToServer(new C1RequestDataForUUID(uuid, this.handler));
             this.requested.add(uuid);
         }
         return Optional.empty();

@@ -1,0 +1,9 @@
+modLoader="javafml"
+loaderVersion="[36,)"
+license="All right reserved"
+[[mods]]
+modId="taxidermy"
+version="${file.jarVersion}"
+displayName="Taxidermy"
+authors="Wyn Price"
+description=''''''

@@ -46,5 +46,6 @@ public class S6SendHeaders {
                 ((GuiTaxidermyBlock) screen).setList(message.handler, message.headers);
             }
         });
+        context.setPacketHandled(true);
     }
 }

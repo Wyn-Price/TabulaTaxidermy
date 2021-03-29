@@ -46,6 +46,7 @@ public class S4SyncBlockProperties {
                 ((GuiTaxidermyBlock) screen).setProperties(message.index, message.value);
             }
         });
+        context.setPacketHandled(true);
     }
 
 

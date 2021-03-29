@@ -34,6 +34,7 @@ public class C1RequestDataForUUID {
                 SplitNetworkHandler.sendSplitMessage(new S2SendDataToClient(message.uuid, h), PacketDistributor.DIMENSION.with(world::dimension));
             });
         });
+        context.setPacketHandled(true);
     }
 
 }

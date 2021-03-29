@@ -50,5 +50,6 @@ public class C0UploadData {
             DataHandler<?> handler = message.handler.getParent();
             Taxidermy.NETWORK.send(PacketDistributor.PLAYER.with(() -> sender), new S6SendHeaders(handler, handler.getHeaders()));
         });
+        context.setPacketHandled(true);
     }
 }

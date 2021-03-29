@@ -29,5 +29,6 @@ public class S2SendDataToClient {
 
     public static void handle(S2SendDataToClient message, Supplier<NetworkEvent.Context> supplier) {
         supplier.get().enqueueWork(() -> TaxidermyClientCache.handle(message.uuid, message.handler));
+        supplier.get().setPacketHandled(true);
     }
 }

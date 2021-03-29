@@ -64,7 +64,7 @@ public class Taxidermy {
         IEventBus bus = FMLJavaModLoadingContext.get().getModEventBus();
         IEventBus forgeBus = MinecraftForge.EVENT_BUS;
 
-        forgeBus.addListener(this::preInit);
+        bus.addListener(this::preInit);
 
         B.register(bus);
         I.register(bus);
@@ -83,7 +83,7 @@ public class Taxidermy {
         NETWORK.registerMessage(7, C7S7SetBlockUUID.class, C7S7SetBlockUUID::toBytes, C7S7SetBlockUUID::fromBytes, C7S7SetBlockUUID::handle);
         NETWORK.registerMessage(8, C8ToggleHidden.class, C8ToggleHidden::toBytes, C8ToggleHidden::fromBytes, C8ToggleHidden::handle);
 
-        DistExecutor.safeRunWhenOn(Dist.CLIENT, () -> Taxidermy::registerTESR);
+        DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> Taxidermy::registerTESR);
     }
 
     private static void registerTESR() {

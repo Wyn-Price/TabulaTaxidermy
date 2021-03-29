@@ -33,5 +33,6 @@ public class C8ToggleHidden {
                 world.setBlock(message.pos, state.setValue(TaxidermyBlock.HIDDEN, !state.getValue(TaxidermyBlock.HIDDEN)), 3);
             }
         });
+        context.setPacketHandled(true);
     }
 }

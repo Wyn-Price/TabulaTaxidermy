@@ -2,14 +2,15 @@ package com.wynprice.taxidermy;
 
 import com.google.gson.*;
 import lombok.Getter;
+import lombok.Setter;
 import net.dumbcode.dumblibrary.server.utils.DCMBufferHandler;
 import net.dumbcode.dumblibrary.server.utils.ImageBufferHandler;
-import net.dumbcode.studio.model.ModelInfo;
-import net.dumbcode.studio.model.ModelLoader;
-import net.dumbcode.studio.model.ModelWriter;
+import net.dumbcode.dumblibrary.server.utils.JavaUtils;
+import net.dumbcode.studio.model.*;
 import net.minecraft.client.renderer.texture.NativeImage;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.util.JSONUtils;
+import net.minecraft.util.Util;
 import net.minecraft.world.storage.FolderName;
 import net.minecraftforge.fml.server.ServerLifecycleHooks;
 
@@ -27,18 +28,23 @@ import java.util.function.Function;
 public class DataHandler<O> {
     private static final FolderName TAXIDERMY_STORAGE = new FolderName("taxidermy_storage");
     public static final DataHandler<NativeImage> TEXTURE = new DataHandler<>(
-        "texture", ".png", TaxidermyBlockEntity::setTextureUUID, ImageBufferHandler.INSTANCE,
-        (img, stream) -> stream.write(img.asByteArray()), NativeImage::read
+        "texture", "png", TaxidermyBlockEntity::setTextureUUID, ImageBufferHandler.INSTANCE,
+        (img, stream) -> stream.write(img.asByteArray()),
+        (stream, fromFile) -> NativeImage.read(stream)
     );
 
     public static final DataHandler<ModelInfo> MODEL = new DataHandler<>(
-        "model", ".tbl", TaxidermyBlockEntity::setModelUUID, DCMBufferHandler.INSTANCE,
-        ModelWriter::writeModel, ModelLoader::loadModel
+        "model", "dcm", TaxidermyBlockEntity::setModelUUID, DCMBufferHandler.INSTANCE,
+        ModelWriter::writeModel,
+        (stream, fromFile) -> ModelLoader.loadModel(stream, RotationOrder.ZYX, fromFile ? ModelMirror.YZ : ModelMirror.NONE)
     );
 
     public static final DataHandler[] HANDLERS = { TEXTURE, MODEL };
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+
+    @Getter @Setter
+    private String folderCache;
 
     @Getter
     private final String typeName;
@@ -50,11 +56,11 @@ public class DataHandler<O> {
     private final BiConsumer<PacketBuffer, O> seralizer;
     private final Function<PacketBuffer, O> deseralizer;
     private final ThrowableBiConsumer<O, OutputStream> filsSeralizer;
-    private final ThrowableFunction<InputStream, O> fileDeseralizer;
+    private final ThrowableBiFunction<InputStream, Boolean, O> fileDeseralizer;
 
     public <T extends BiConsumer<PacketBuffer, O> & Function<PacketBuffer, O>> DataHandler(
         String typeName, String extension, BiConsumer<TaxidermyBlockEntity, UUID> uuidSetter, T handler,
-        ThrowableBiConsumer<O, OutputStream> filsSeralizer, ThrowableFunction<InputStream, O> fileDeseralizer
+        ThrowableBiConsumer<O, OutputStream> filsSeralizer, ThrowableBiFunction<InputStream, Boolean, O> fileDeseralizer
     ) {
         this.typeName = typeName;
         this.extension = extension;
@@ -79,7 +85,7 @@ public class DataHandler<O> {
     }
 
     private Path getUUIDFile(UUID uuid) {
-        return this.getBaseFolder().resolve(uuid.toString().replaceAll("-", "") + this.extension);
+        return this.getBaseFolder().resolve(uuid.toString().replaceAll("-", "") + "." + this.extension);
     }
 
     private Path getJsonFile() {
@@ -133,12 +139,12 @@ public class DataHandler<O> {
     }
 
     public Optional<Handler<O>> createHandler(UUID uuid) {
-        return this.createHandler(this.getUUIDFile(uuid));
+        return this.createHandler(this.getUUIDFile(uuid), false);
     }
 
-    public Optional<Handler<O>> createHandler(Path file) {
+    public Optional<Handler<O>> createHandler(Path file, boolean userPath) {
         try {
-            return Optional.ofNullable(this.fileDeseralizer.apply(Files.newInputStream(file))).map(o -> new Handler<>(o, this));
+            return Optional.ofNullable(this.fileDeseralizer.apply(Files.newInputStream(file), userPath)).map(o -> new Handler<>(o, this));
         } catch (IOException e) {
             Taxidermy.getLogger().error("Unable to read file '" + file.toAbsolutePath() + "'", e);
         }
@@ -194,5 +200,5 @@ public class DataHandler<O> {
     }
 
     private interface ThrowableBiConsumer<T, U>  { void accept(T t, U u) throws IOException; }
-    private interface ThrowableFunction<T, R>  { R apply(T t) throws IOException; }
+    private interface ThrowableBiFunction<T, A, R>  { R apply(T t, A a) throws IOException; }
 }

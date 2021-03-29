@@ -4,6 +4,7 @@ import com.wynprice.taxidermy.DataHandler;
 import com.wynprice.taxidermy.Taxidermy;
 import com.wynprice.taxidermy.TaxidermyBlockEntity;
 import lombok.AllArgsConstructor;
+import net.dumbcode.dumblibrary.server.network.NetworkUtils;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
@@ -38,7 +39,7 @@ public class C7S7SetBlockUUID {
     public static void handle(C7S7SetBlockUUID message, Supplier<NetworkEvent.Context> supplier) {
         NetworkEvent.Context context = supplier.get();
         context.enqueueWork(() -> {
-            World world = context.getSender().level;
+            World world = NetworkUtils.getPlayer(supplier).level;
             TileEntity entity = world.getBlockEntity(message.pos);
             if(entity instanceof TaxidermyBlockEntity) {
                 message.handler.applyTo((TaxidermyBlockEntity) entity, message.uuid);
@@ -47,5 +48,6 @@ public class C7S7SetBlockUUID {
                 Taxidermy.NETWORK.send(PacketDistributor.DIMENSION.with(world::dimension), new C7S7SetBlockUUID(message.pos, message.uuid, message.handler));
             }
         });
+        context.setPacketHandled(true);
     }
 }

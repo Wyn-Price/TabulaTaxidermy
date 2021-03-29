@@ -16,14 +16,20 @@ import net.minecraft.util.math.vector.Vector3f;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.fml.client.gui.widget.ExtendedButton;
 import net.minecraftforge.fml.network.PacketDistributor;
+import org.lwjgl.PointerBuffer;
+import org.lwjgl.system.MemoryUtil;
+import org.lwjgl.util.nfd.NativeFileDialog;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
 
 public class GuiTaxidermyBlock extends Screen {
+
+    private static boolean fileDialogOpen = false;
 
     @Getter
     private final TaxidermyBlockEntity blockEntity;
@@ -58,8 +64,8 @@ public class GuiTaxidermyBlock extends Screen {
     public void init() {
         Taxidermy.NETWORK.sendToServer(new C5RequestHeaders());
 
-        this.modelSelectionBox = new GuiDropdownBox<>(this.width/2-175, this.height/4-40, 170, 20, this.height/80, () -> this.modelEntries);
-        this.textureSelectionBox = new GuiDropdownBox<>(this.width/2+5, this.height/4-40, 170, 20, this.height/80, () -> this.textureEntries);
+        this.addButton(this.modelSelectionBox = new GuiDropdownBox<>(this.width/2-175, this.height/4-40, 170, 20, this.height/80, () -> this.modelEntries));
+        this.addButton(this.textureSelectionBox = new GuiDropdownBox<>(this.width/2+5, this.height/4-40, 170, 20, this.height/80, () -> this.textureEntries));
 
         int sliderWidth = 100;
 
@@ -108,18 +114,15 @@ public class GuiTaxidermyBlock extends Screen {
     public void render(MatrixStack stack, int mouseX, int mouseY, float partialTicks) {
         this.renderBackground(stack);
         super.render(stack, mouseX, mouseY, partialTicks);
-        this.modelSelectionBox.render(stack, mouseX, mouseY);
-        this.textureSelectionBox.render(stack, mouseX, mouseY);
 
         FontRenderer renderer = Minecraft.getInstance().font;
         AbstractGui.drawCenteredString(stack, renderer, "Model", this.width/2-85, this.height/4-60, GuiConstants.NICE_WHITE);
         AbstractGui.drawCenteredString(stack, renderer, "Texture", this.width/2+85, this.height/4-60, GuiConstants.NICE_WHITE);
-
     }
 
     @Override
-    public boolean isPauseScreen() {
-        return false;
+    public void onFilesDrop(List<Path> p_230476_1_) {
+        super.onFilesDrop(p_230476_1_);
     }
 
     @Override
@@ -206,10 +209,26 @@ public class GuiTaxidermyBlock extends Screen {
         @Override
         public boolean onClicked(double relMouseX, double relMouseY, double mouseX, double mouseY) {
             if(this.file != null) {
-                this.handler.createHandler(this.file.toPath()).ifPresent(h ->
+                this.handler.createHandler(this.file.toPath(), true).ifPresent(h ->
                     SplitNetworkHandler.sendSplitMessage(new C0UploadData(blockEntity.getBlockPos(), UUID.randomUUID(), this.file.getName(), h), PacketDistributor.SERVER.noArg())
                 );
                 this.file = null;
+            } else {
+                PointerBuffer path = MemoryUtil.memAllocPointer(1);
+                try {
+                    int result = NativeFileDialog.NFD_OpenDialog(this.handler.getExtension(), this.handler.getFolderCache(), path);
+                    switch (result) {
+                        case NativeFileDialog.NFD_OKAY:
+                            this.file = new File(path.getStringUTF8(0));
+                            break;
+                        case NativeFileDialog.NFD_CANCEL:
+                            break;
+                        default:
+                            Taxidermy.getLogger().error("File Dialog Error: {}", NativeFileDialog.NFD_GetError());
+                    }
+                } finally {
+                    MemoryUtil.memFree(path);
+                }
             }
             return false;
         }

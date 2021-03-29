@@ -42,6 +42,7 @@ public class C3SetBlockProperties {
             }
             Taxidermy.NETWORK.send(PacketDistributor.DIMENSION.with(world::dimension), new S4SyncBlockProperties(message.blockPos, message.index, message.value));
         });
+        context.setPacketHandled(true);
     }
 
 

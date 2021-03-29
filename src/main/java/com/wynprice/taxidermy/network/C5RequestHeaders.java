@@ -25,5 +25,6 @@ public class C5RequestHeaders {
                 Taxidermy.NETWORK.send(PacketDistributor.PLAYER.with(() -> sender), new S6SendHeaders(handler, handler.getHeaders()));
             }
         });
+        context.setPacketHandled(true);
     }
 }

@@ -3,7 +3,6 @@ package com.wynprice.taxidermy.network;
 import com.wynprice.taxidermy.DataHandler;
 import com.wynprice.taxidermy.DataHeader;
 import com.wynprice.taxidermy.GuiTaxidermyBlock;
-import io.netty.buffer.ByteBuf;
 import lombok.AllArgsConstructor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screen.Screen;

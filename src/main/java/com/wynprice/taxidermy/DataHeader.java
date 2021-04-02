@@ -1,9 +1,7 @@
 package com.wynprice.taxidermy;
 
-import io.netty.buffer.ByteBuf;
 import lombok.Value;
 import net.minecraft.network.PacketBuffer;
-import net.minecraftforge.fml.common.network.ByteBufUtils;
 
 import java.util.UUID;
 

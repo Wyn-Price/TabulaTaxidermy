@@ -1,6 +1,7 @@
 package com.wynprice.taxidermy;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockRenderType;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.ContainerBlock;
 import net.minecraft.client.Minecraft;
@@ -9,13 +10,9 @@ import net.minecraft.state.BooleanProperty;
 import net.minecraft.state.StateContainer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ActionResultType;
-import net.minecraft.util.Direction;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.BlockRayTraceResult;
-import net.minecraft.util.math.shapes.ISelectionContext;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.shapes.VoxelShapes;
 import net.minecraft.world.IBlockReader;
 import net.minecraft.world.World;
 
@@ -48,36 +45,14 @@ public class TaxidermyBlock extends ContainerBlock {
         Minecraft.getInstance().setScreen(new GuiTaxidermyBlock(entity));
     }
 
-
     @Override
-    public boolean skipRendering(BlockState state, BlockState p_200122_2_, Direction p_200122_3_) {
-        return state.getValue(HIDDEN);
+    public BlockRenderType getRenderShape(BlockState state) {
+        return state.getValue(HIDDEN) ? BlockRenderType.INVISIBLE : BlockRenderType.MODEL;
     }
 
     @Override
     public boolean propagatesSkylightDown(BlockState state, IBlockReader reader, BlockPos pos) {
-        return false;
-    }
-
-    @Override
-    public int getLightBlock(BlockState state, IBlockReader world, BlockPos pos) {
-        return 0;
-    }
-
-    //    @Override
-//    public boolean isFullCube(IBlockState state) {
-//        return false;
-//    }
-//
-//    @Override
-//    public boolean isOpaqueCube(IBlockState state) {
-//        return false;
-//    }
-
-
-    @Override
-    public VoxelShape getCollisionShape(BlockState p_220071_1_, IBlockReader p_220071_2_, BlockPos p_220071_3_, ISelectionContext p_220071_4_) {
-        return VoxelShapes.empty();
+        return true;
     }
 
     @Nullable

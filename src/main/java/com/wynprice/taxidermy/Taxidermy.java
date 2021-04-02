@@ -1,7 +1,6 @@
 package com.wynprice.taxidermy;
 
 import com.wynprice.taxidermy.network.*;
-import net.dumbcode.dumblibrary.DumbLibrary;
 import net.dumbcode.dumblibrary.server.network.SplitNetworkHandler;
 import net.minecraft.block.AbstractBlock;
 import net.minecraft.block.Block;
@@ -49,14 +48,13 @@ public class Taxidermy {
     };
 
     private static final DeferredRegister<Block> B = DeferredRegister.create(ForgeRegistries.BLOCKS, MODID);
-    public static final RegistryObject<Block> BLOCK = B.register(MODID, () -> new TaxidermyBlock(AbstractBlock.Properties.of(Material.STONE)));
+    public static final RegistryObject<Block> BLOCK = B.register(MODID, () -> new TaxidermyBlock(AbstractBlock.Properties.of(Material.STONE).noCollission()));
 
     private static final DeferredRegister<Item> I = DeferredRegister.create(ForgeRegistries.ITEMS, MODID);
     public static final RegistryObject<Item> ITEM = I.register(MODID, () -> new BlockItem(BLOCK.get(), new Item.Properties().tab(TAB)));
 
     private static final DeferredRegister<TileEntityType<?>> T = DeferredRegister.create(ForgeRegistries.TILE_ENTITIES, MODID);
     public static final RegistryObject<TileEntityType<TaxidermyBlockEntity>> BLOCK_ENTITY = T.register(MODID, () -> TileEntityType.Builder.of(TaxidermyBlockEntity::new, BLOCK.get()).build(null));
-
 
     private static Logger logger = LogManager.getLogger(MODID);
 
@@ -72,7 +70,7 @@ public class Taxidermy {
     }
 
     public void preInit(FMLCommonSetupEvent event) {
-
+        TaxidermyNativeFileDialog.tryLoad();
         SplitNetworkHandler.registerMessage(C0UploadData.class, C0UploadData::toBytes, C0UploadData::fromBytes, C0UploadData::handle);
         NETWORK.registerMessage(1, C1RequestDataForUUID.class, C1RequestDataForUUID::toBytes, C1RequestDataForUUID::fromBytes, C1RequestDataForUUID::handle);
         SplitNetworkHandler.registerMessage(S2SendDataToClient.class, S2SendDataToClient::toBytes, S2SendDataToClient::fromBytes, S2SendDataToClient::handle);

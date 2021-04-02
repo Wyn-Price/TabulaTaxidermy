@@ -8,6 +8,7 @@ import net.dumbcode.dumblibrary.client.gui.*;
 import net.dumbcode.dumblibrary.client.model.dcm.DCMModel;
 import net.dumbcode.dumblibrary.server.network.SplitNetworkHandler;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.MouseHelper;
 import net.minecraft.client.gui.AbstractGui;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.screen.Screen;
@@ -51,9 +52,11 @@ public class GuiTaxidermyBlock extends Screen {
 
     @Getter
     private final List<SelectListEntry> textureEntries = new ArrayList<>();
+    private UploadEntryEntry textureUpload;
 
     @Getter
     private final List<SelectListEntry> modelEntries = new ArrayList<>();
+    private UploadEntryEntry modelUpload;
 
     public GuiTaxidermyBlock(TaxidermyBlockEntity blockEntity) {
         super(new StringTextComponent("Taxidermy :)"));
@@ -87,16 +90,16 @@ public class GuiTaxidermyBlock extends Screen {
         }));
 
         Vector3f translation = this.blockEntity.getTranslation();
-        this.xPosition = new GuiNumberEntry(7, translation.x(), 1/4F, 2, this.width/4, this.height/2+ 30, sliderWidth, 20, this::addButton, this::onChange);
-        this.yPosition = new GuiNumberEntry(8, translation.y(), 1/4F, 2, this.width/2, this.height/2 + 30, sliderWidth, 20, this::addButton, this::onChange);
-        this.zPosition = new GuiNumberEntry(9, translation.z(), 1/4F, 2, 3*this.width/4, this.height/2 + 30, sliderWidth, 20, this::addButton, this::onChange);
+        this.addButton(this.xPosition = new GuiNumberEntry(0, translation.x(), 1/4F, 2, this.width/4, this.height/2+ 30, sliderWidth, 20, this::onChange));
+        this.addButton(this.yPosition = new GuiNumberEntry(1, translation.y(), 1/4F, 2, this.width/2, this.height/2 + 30, sliderWidth, 20, this::onChange));
+        this.addButton(this.zPosition = new GuiNumberEntry(2, translation.z(), 1/4F, 2, 3*this.width/4, this.height/2 + 30, sliderWidth, 20, this::onChange));
 
         Vector3f rotation = this.blockEntity.getRotation();
-        this.xRotation = new GuiNumberEntry(10, rotation.x(), 22.5F, 2, this.width/4, this.height/2 + 60, sliderWidth, 20, this::addButton, this::onChange);
-        this.yRotation = new GuiNumberEntry(11, rotation.y(), 22.5F, 2, this.width/2, this.height/2 + 60, sliderWidth, 20, this::addButton, this::onChange);
-        this.zRotation = new GuiNumberEntry(12, rotation.z(), 22.5F, 2, 3*this.width/4, this.height/2 + 60, sliderWidth, 20, this::addButton, this::onChange);
+        this.addButton(this.xRotation = new GuiNumberEntry(3, rotation.x(), 22.5F, 2, this.width/4, this.height/2 + 60, sliderWidth, 20, this::onChange));
+        this.addButton(this.yRotation = new GuiNumberEntry(4, rotation.y(), 22.5F, 2, this.width/2, this.height/2 + 60, sliderWidth, 20, this::onChange));
+        this.addButton(this.zRotation = new GuiNumberEntry(5, rotation.z(), 22.5F, 2, 3*this.width/4, this.height/2 + 60, sliderWidth, 20, this::onChange));
 
-        this.scaleSlider = new GuiNumberEntry(13, this.blockEntity.getScale(), 1/4F, 2, this.width/2, this.height/2, sliderWidth, 20, this::addButton, this::onChange);
+        this.addButton(this.scaleSlider = new GuiNumberEntry(6, this.blockEntity.getScale(), 1/4F, 2, this.width/2, this.height/2, sliderWidth, 20, this::onChange));
 
         this.allSliders = new GuiNumberEntry[]{ this.xPosition, this.yPosition, this.zPosition, this.xRotation, this.yRotation, this.zRotation, this.scaleSlider };
 
@@ -121,8 +124,30 @@ public class GuiTaxidermyBlock extends Screen {
     }
 
     @Override
-    public void onFilesDrop(List<Path> p_230476_1_) {
-        super.onFilesDrop(p_230476_1_);
+    public void onFilesDrop(List<Path> files) {
+        Minecraft instance = Minecraft.getInstance();
+        MouseHelper handler = instance.mouseHandler;
+        double x = handler.xpos() * instance.getWindow().getGuiScaledWidth() / instance.getWindow().getScreenWidth();
+        boolean model = x < this.width/2D;
+
+        UploadEntryEntry entry = model ? this.modelUpload : this.textureUpload;
+        if(entry != null) {
+            for (Path file : files) {
+                if (file.getFileName().endsWith("."+(model ? DataHandler.MODEL : DataHandler.TEXTURE).getExtension())) {
+                    try {
+                        entry.file = file.toFile();
+                        GuiDropdownBox<SelectListEntry> box = model ? this.modelSelectionBox : this.textureSelectionBox;
+                        box.setOpen(true);
+                        box.setActive(entry);
+                        break;
+                    } catch (Exception ignored) {
+
+                    }
+                }
+
+            }
+        }
+
     }
 
     @Override
@@ -144,7 +169,7 @@ public class GuiTaxidermyBlock extends Screen {
     }
 
     public void onChange(GuiNumberEntry entry, int id) {
-        Taxidermy.NETWORK.sendToServer(new C3SetBlockProperties(this.blockEntity.getBlockPos(), id-7, (float) entry.getValue()));
+        Taxidermy.NETWORK.sendToServer(new C3SetBlockProperties(this.blockEntity.getBlockPos(), id, (float) entry.getValue()));
     }
 
     public void setProperties(int index, float value) {
@@ -154,7 +179,13 @@ public class GuiTaxidermyBlock extends Screen {
     public void setList(DataHandler<?> handler, List<DataHeader> headers) {
         List<SelectListEntry> entries = (handler == DataHandler.TEXTURE ? this.textureEntries : this.modelEntries);
         entries.clear();
-        entries.add(new UploadEntryEntry(handler));
+        UploadEntryEntry entry = new UploadEntryEntry(handler);
+        if(handler == DataHandler.TEXTURE) {
+            this.textureUpload = entry;
+        } else {
+            this.modelUpload = entry;
+        }
+        entries.add(entry);
         for (DataHeader header : headers) {
             entries.add(new DataHeaderEntry(handler, header));
         }

@@ -11,6 +11,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.MouseHelper;
 import net.minecraft.client.gui.AbstractGui;
 import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.client.gui.IGuiEventListener;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.vector.Vector3f;
@@ -21,6 +22,7 @@ import org.lwjgl.PointerBuffer;
 import org.lwjgl.system.MemoryUtil;
 import org.lwjgl.util.nfd.NativeFileDialog;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -166,6 +168,15 @@ public class GuiTaxidermyBlock extends Screen {
         }
         this.runOnSliders(GuiNumberEntry::tick);
         super.tick();
+    }
+
+    @Override
+    public void setFocused(@Nullable IGuiEventListener object) {
+        IGuiEventListener focused = this.getFocused();
+        if(focused != null) {
+            focused.mouseClicked(-1, -1, -1);
+        }
+        super.setFocused(object);
     }
 
     public void onChange(GuiNumberEntry entry, int id) {

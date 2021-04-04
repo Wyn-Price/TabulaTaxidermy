@@ -24,13 +24,13 @@ import java.util.function.Function;
 public class DataHandler<O> {
     private static final FolderName TAXIDERMY_STORAGE = new FolderName("taxidermy_storage");
     public static final DataHandler<NativeImage> TEXTURE = new DataHandler<>(
-        "texture", "png", TaxidermyBlockEntity::setTextureUUID, ImageBufferHandler.INSTANCE,
+        "texture", "png", "Texture File",TaxidermyBlockEntity::setTextureUUID, ImageBufferHandler.INSTANCE,
         (img, stream) -> stream.write(img.asByteArray()),
         (stream, fromFile) -> NativeImage.read(stream)
     );
 
     public static final DataHandler<ModelInfo> MODEL = new DataHandler<>(
-        "model", "dcm", TaxidermyBlockEntity::setModelUUID, DCMBufferHandler.INSTANCE,
+        "model", "dcm", "Model File", TaxidermyBlockEntity::setModelUUID, DCMBufferHandler.INSTANCE,
         ModelWriter::writeModel,
         (stream, fromFile) -> ModelLoader.loadModel(stream, RotationOrder.ZYX, fromFile ? ModelMirror.YZ : ModelMirror.NONE)
     );
@@ -46,6 +46,8 @@ public class DataHandler<O> {
     private final String typeName;
     @Getter
     private final String extension;
+    @Getter
+    private final String fileDescription;
     private final BiConsumer<TaxidermyBlockEntity, UUID> uuidSetter;
 
     //IO Stuff:
@@ -55,11 +57,12 @@ public class DataHandler<O> {
     private final ThrowableBiFunction<InputStream, Boolean, O> fileDeseralizer;
 
     public <T extends BiConsumer<PacketBuffer, O> & Function<PacketBuffer, O>> DataHandler(
-        String typeName, String extension, BiConsumer<TaxidermyBlockEntity, UUID> uuidSetter, T handler,
+        String typeName, String extension, String fileDescription, BiConsumer<TaxidermyBlockEntity, UUID> uuidSetter, T handler,
         ThrowableBiConsumer<O, OutputStream> filsSeralizer, ThrowableBiFunction<InputStream, Boolean, O> fileDeseralizer
     ) {
         this.typeName = typeName;
         this.extension = extension;
+        this.fileDescription = fileDescription;
         this.uuidSetter = uuidSetter;
         this.seralizer = handler;
         this.deseralizer = handler;

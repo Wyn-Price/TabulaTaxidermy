@@ -70,7 +70,6 @@ public class Taxidermy {
     }
 
     public void preInit(FMLCommonSetupEvent event) {
-        TaxidermyNativeFileDialog.tryLoad();
         SplitNetworkHandler.registerMessage(C0UploadData.class, C0UploadData::toBytes, C0UploadData::fromBytes, C0UploadData::handle);
         NETWORK.registerMessage(1, C1RequestDataForUUID.class, C1RequestDataForUUID::toBytes, C1RequestDataForUUID::fromBytes, C1RequestDataForUUID::handle);
         SplitNetworkHandler.registerMessage(S2SendDataToClient.class, S2SendDataToClient::toBytes, S2SendDataToClient::fromBytes, S2SendDataToClient::handle);

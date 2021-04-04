@@ -80,14 +80,6 @@ minecraft {
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
-configurations {
-    implementation.extendsFrom shade
-    runtimeOnly.extendsFrom runtimeOnlyInJar
-
-    shade.transitive = false
-    runtimeOnlyInJar.transitive = false
-}
-
 repositories {
     mavenCentral()
 }
@@ -100,11 +92,6 @@ dependencies {
     implementation project(path: ':studio_jar', configuration: 'default')
 
     compile project('dumb_library')
-
-    shade 'org.lwjgl:lwjgl-nfd:3.2.2'
-    runtimeOnlyInJar 'org.lwjgl:lwjgl-nfd:3.2.2:natives-windows'
-    runtimeOnlyInJar 'org.lwjgl:lwjgl-nfd:3.2.2:natives-linux'
-    runtimeOnlyInJar 'org.lwjgl:lwjgl-nfd:3.2.2:natives-macos'
 }
 
 // Example for how to get properties into the manifest for reading by the runtime..
@@ -120,22 +107,6 @@ jar {
             "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
     }
-
-    copy {
-        from {
-            project.configurations.runtimeOnlyInJar.collect {
-                zipTree(it).matching { include { !it.directory && !it.relativePath.contains("/") && !it.relativePath.endsWithAny(".sha1") } }
-            }
-        }
-        into 'build/taxidermy_lwjgl_natives/lwjgl_natives'
-    }
-    copy {
-        from {
-            project.configurations.shade.collect { it }
-        }
-        into 'build/taxidermy_lwjgl_natives/lwjgl_natives/'
-    }
-    from 'build/taxidermy_lwjgl_natives/'
 }
 
 jar.finalizedBy('reobfJar') 

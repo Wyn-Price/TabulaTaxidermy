@@ -19,13 +19,14 @@ import net.minecraft.util.math.vector.Vector3f;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.fml.client.gui.widget.ExtendedButton;
 import net.minecraftforge.fml.network.PacketDistributor;
+import org.apache.commons.io.FilenameUtils;
 import org.lwjgl.PointerBuffer;
-import org.lwjgl.system.MemoryUtil;
-import org.lwjgl.util.nfd.NativeFileDialog;
+import org.lwjgl.system.MemoryStack;
+import org.lwjgl.util.tinyfd.TinyFileDialogs;
 
 import javax.annotation.Nullable;
-import java.io.File;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -138,7 +139,7 @@ public class GuiTaxidermyBlock extends Screen {
             for (Path file : files) {
                 if (file.getFileName().endsWith("."+(model ? DataHandler.MODEL : DataHandler.TEXTURE).getExtension())) {
                     try {
-                        entry.file = file.toFile();
+                        entry.path = file;
                         GuiDropdownBox<SelectListEntry> box = model ? this.modelSelectionBox : this.textureSelectionBox;
                         box.setOpen(true);
                         box.setActive(entry);
@@ -232,7 +233,7 @@ public class GuiTaxidermyBlock extends Screen {
     private class UploadEntryEntry implements SelectListEntry {
 
         private final DataHandler<?> handler;
-        private File file;
+        private Path path;
 
         private UploadEntryEntry(DataHandler<?> handler) {
             this.handler = handler;
@@ -245,32 +246,30 @@ public class GuiTaxidermyBlock extends Screen {
 
         @Override
         public void draw(MatrixStack stack, int x, int y, int mouseX, int mouseY, boolean mouseOver) {
-            String text = this.file == null ? "Upload new file" : "Click to upload " + this.file.getName();
+            String text = this.path == null ? "Upload new file" : "Click to upload " + FilenameUtils.getName(this.path.toString());
             Minecraft.getInstance().font.draw(stack, text, x + 3, y + 4, 0xFFFAFAFA);
         }
 
         @Override
         public boolean onClicked(double relMouseX, double relMouseY, double mouseX, double mouseY) {
-            if(this.file != null) {
-                this.handler.createHandler(this.file.toPath(), true).ifPresent(h ->
-                    SplitNetworkHandler.sendSplitMessage(new C0UploadData(blockEntity.getBlockPos(), UUID.randomUUID(), this.file.getName(), h), PacketDistributor.SERVER.noArg())
+            if(this.path != null) {
+                this.handler.createHandler(this.path, true).ifPresent(h ->
+                    SplitNetworkHandler.sendSplitMessage(new C0UploadData(blockEntity.getBlockPos(), UUID.randomUUID(), FilenameUtils.getName(this.path.toString()), h), PacketDistributor.SERVER.noArg())
                 );
-                this.file = null;
+                this.path = null;
             } else {
-                PointerBuffer path = MemoryUtil.memAllocPointer(1);
+                MemoryStack stack = MemoryStack.stackPush();
                 try {
-                    int result = NativeFileDialog.NFD_OpenDialog(this.handler.getExtension(), this.handler.getFolderCache(), path);
-                    switch (result) {
-                        case NativeFileDialog.NFD_OKAY:
-                            this.file = new File(path.getStringUTF8(0));
-                            break;
-                        case NativeFileDialog.NFD_CANCEL:
-                            break;
-                        default:
-                            Taxidermy.getLogger().error("File Dialog Error: {}", NativeFileDialog.NFD_GetError());
+                    PointerBuffer filters = stack.mallocPointer(1);
+                    filters.put(stack.UTF8("*." + this.handler.getExtension()));
+                    filters.flip();
+                    String result = TinyFileDialogs.tinyfd_openFileDialog("Select a file", this.handler.getFolderCache(), filters, this.handler.getFileDescription(), false);
+                    if(result != null) {
+                        this.path = Paths.get(result);
+                        this.handler.setFolderCache(this.path.getParent().toAbsolutePath().toString());
                     }
                 } finally {
-                    MemoryUtil.memFree(path);
+                    stack.pop();
                 }
             }
             return false;

@@ -25,7 +25,7 @@ public class TaxidermyBlockEntityRenderer extends TileEntityRenderer<TaxidermyBl
 
         Vector3f t = te.getTranslation();
         stack.mulPose(Vector3f.XP.rotationDegrees(180));
-        stack.translate(t.x(), t.y(), t.y());
+        stack.translate(t.x(), t.y(), t.z());
 
         Vector3f r = te.getRotation();
         if(r.y() != 0) {

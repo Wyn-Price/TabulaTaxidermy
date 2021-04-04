@@ -13,6 +13,7 @@ import net.minecraft.client.gui.AbstractGui;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.IGuiEventListener;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.vector.Vector3f;
 import net.minecraft.util.text.StringTextComponent;
@@ -173,8 +174,8 @@ public class GuiTaxidermyBlock extends Screen {
     @Override
     public void setFocused(@Nullable IGuiEventListener object) {
         IGuiEventListener focused = this.getFocused();
-        if(focused != null) {
-            focused.mouseClicked(-1, -1, -1);
+        if(focused instanceof Widget) {
+            focused.changeFocus(false);
         }
         super.setFocused(object);
     }

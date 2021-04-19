@@ -32,7 +32,7 @@ public class DataHandler<O> {
     public static final DataHandler<ModelInfo> MODEL = new DataHandler<>(
         "model", "dcm", "Model File", TaxidermyBlockEntity::setModelUUID, DCMBufferHandler.INSTANCE,
         ModelWriter::writeModel,
-        (stream, fromFile) -> ModelLoader.loadModel(stream, RotationOrder.ZYX, fromFile ? ModelMirror.YZ : ModelMirror.NONE)
+        (stream, fromFile) -> ModelLoader.loadModel(stream, RotationOrder.ZYX, fromFile ? ModelMirror.XY : ModelMirror.NONE)
     );
 
     public static final DataHandler[] HANDLERS = { TEXTURE, MODEL };

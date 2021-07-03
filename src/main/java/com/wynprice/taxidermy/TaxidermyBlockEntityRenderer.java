@@ -24,8 +24,8 @@ public class TaxidermyBlockEntityRenderer extends TileEntityRenderer<TaxidermyBl
         stack.pushPose();
 
         Vector3f t = te.getTranslation();
-        stack.mulPose(Vector3f.XP.rotationDegrees(180));
-        stack.translate(t.x(), t.y(), t.z());
+//        stack.mulPose(Vector3f.XP.rotationDegrees(180));
+        stack.translate(t.x() + 0.5, t.y(), t.z() + 0.5);
 
         Vector3f r = te.getRotation();
         if(r.y() != 0) {
@@ -39,7 +39,6 @@ public class TaxidermyBlockEntityRenderer extends TileEntityRenderer<TaxidermyBl
         }
 
         stack.scale(te.getScale(), te.getScale(), te.getScale());
-        stack.translate(0, -1.5, 0);
 
         DCMModel model = te.getModel();
         ResourceLocation location = te.getTexture();

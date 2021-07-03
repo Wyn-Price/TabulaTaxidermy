@@ -128,6 +128,11 @@ public class GuiTaxidermyBlock extends Screen {
     }
 
     @Override
+    public boolean isPauseScreen() {
+        return false;
+    }
+
+    @Override
     public void onFilesDrop(List<Path> files) {
         Minecraft instance = Minecraft.getInstance();
         MouseHelper handler = instance.mouseHandler;

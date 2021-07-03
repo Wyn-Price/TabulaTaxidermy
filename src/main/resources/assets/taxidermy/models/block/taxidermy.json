@@ -1,6 +1,6 @@
 {
   "parent": "block/cube_all",
   "textures": {
-    "all": "taxidermy:blocks/taxidermy"
+    "all": "taxidermy:block/taxidermy"
   }
 }

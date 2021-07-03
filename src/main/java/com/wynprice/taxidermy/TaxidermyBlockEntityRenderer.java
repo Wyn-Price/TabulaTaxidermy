@@ -54,8 +54,7 @@ public class TaxidermyBlockEntityRenderer extends TileEntityRenderer<TaxidermyBl
                         box.resetRotations();
                     }
                 }
-                Minecraft.getInstance().textureManager.bind(location);
-                model.renderBoxes(stack, combinedLightIn, location);
+                model.renderBoxes(stack, combinedLightIn, bufferIn, location);
             } else {
                 model.resetAnimations();
                 TaxidermyClientCache.TEXTURE.get(te.getTextureUUID()).ifPresent(te::setTexture);

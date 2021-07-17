@@ -15,13 +15,13 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @AllArgsConstructor
-public class S6SendHeaders {
+public class S2CSendHeaders {
 
     private DataHandler<?> handler;
     private List<DataHeader> headers;
 
-    public static S6SendHeaders fromBytes(PacketBuffer buf) {
-        return new S6SendHeaders(
+    public static S2CSendHeaders fromBytes(PacketBuffer buf) {
+        return new S2CSendHeaders(
             DataHandler.read(buf),
             IntStream.range(0, buf.readShort())
                 .mapToObj(i -> DataHeader.readFromBuf(buf))
@@ -29,7 +29,7 @@ public class S6SendHeaders {
         );
     }
 
-    public static void toBytes(S6SendHeaders packet, PacketBuffer buf) {
+    public static void toBytes(S2CSendHeaders packet, PacketBuffer buf) {
         DataHandler.write(buf, packet.handler);
         buf.writeShort(packet.headers.size());
         for (DataHeader header : packet.headers) {
@@ -37,7 +37,7 @@ public class S6SendHeaders {
         }
     }
 
-    public static void handle(S6SendHeaders message, Supplier<NetworkEvent.Context> supplier) {
+    public static void handle(S2CSendHeaders message, Supplier<NetworkEvent.Context> supplier) {
         NetworkEvent.Context context = supplier.get();
         context.enqueueWork(() -> {
             Screen screen = Minecraft.getInstance().screen;

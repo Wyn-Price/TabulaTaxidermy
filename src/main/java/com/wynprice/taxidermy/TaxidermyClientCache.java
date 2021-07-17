@@ -1,12 +1,12 @@
 package com.wynprice.taxidermy;
 
-import com.wynprice.taxidermy.network.C1RequestDataForUUID;
+import com.wynprice.taxidermy.network.C2SRequestDataForUUID;
 import lombok.RequiredArgsConstructor;
 import net.dumbcode.dumblibrary.client.model.dcm.DCMModel;
+import net.dumbcode.dumblibrary.server.utils.DummyImage;
 import net.dumbcode.studio.model.ModelInfo;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
-import net.minecraft.client.renderer.texture.NativeImage;
 import net.minecraft.util.ResourceLocation;
 
 import java.util.*;
@@ -16,8 +16,8 @@ import java.util.function.Function;
 public class TaxidermyClientCache<F, T> {
     public static final TaxidermyClientCache<ModelInfo, DCMModel> MODEL = new TaxidermyClientCache<>(DataHandler.MODEL, DCMModel::new);
 
-    public static final TaxidermyClientCache<NativeImage, ResourceLocation> TEXTURE = new TaxidermyClientCache<>(DataHandler.TEXTURE, image ->
-        Minecraft.getInstance().textureManager.register(Taxidermy.MODID, new DynamicTexture(image))
+    public static final TaxidermyClientCache<DummyImage, ResourceLocation> TEXTURE = new TaxidermyClientCache<>(DataHandler.TEXTURE, image ->
+        Minecraft.getInstance().textureManager.register(Taxidermy.MODID, new DynamicTexture(image.getImage()))
     );
 
     private final DataHandler<F> handler;
@@ -34,7 +34,7 @@ public class TaxidermyClientCache<F, T> {
             return Optional.of(this.map.get(uuid));
         }
         if(!this.requested.contains(uuid)) {
-            Taxidermy.NETWORK.sendToServer(new C1RequestDataForUUID(uuid, this.handler));
+            Taxidermy.NETWORK.sendToServer(new C2SRequestDataForUUID(uuid, this.handler));
             this.requested.add(uuid);
         }
         return Optional.empty();

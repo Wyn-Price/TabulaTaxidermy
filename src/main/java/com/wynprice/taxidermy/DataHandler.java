@@ -4,6 +4,7 @@ import com.google.gson.*;
 import lombok.Getter;
 import lombok.Setter;
 import net.dumbcode.dumblibrary.server.utils.DCMBufferHandler;
+import net.dumbcode.dumblibrary.server.utils.DummyImage;
 import net.dumbcode.dumblibrary.server.utils.ImageBufferHandler;
 import net.dumbcode.studio.model.*;
 import net.minecraft.client.renderer.texture.NativeImage;
@@ -12,6 +13,7 @@ import net.minecraft.util.JSONUtils;
 import net.minecraft.world.storage.FolderName;
 import net.minecraftforge.fml.server.ServerLifecycleHooks;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -23,10 +25,10 @@ import java.util.function.Function;
 
 public class DataHandler<O> {
     private static final FolderName TAXIDERMY_STORAGE = new FolderName("taxidermy_storage");
-    public static final DataHandler<NativeImage> TEXTURE = new DataHandler<>(
+    public static final DataHandler<DummyImage> TEXTURE = new DataHandler<>(
         "texture", "png", "Texture File",TaxidermyBlockEntity::setTextureUUID, ImageBufferHandler.INSTANCE,
-        (img, stream) -> stream.write(img.asByteArray()),
-        (stream, fromFile) -> NativeImage.read(stream)
+        (img, stream) -> stream.write(img.getData()),
+        (stream, fromFile) -> DummyImage.read(stream)
     );
 
     public static final DataHandler<ModelInfo> MODEL = new DataHandler<>(

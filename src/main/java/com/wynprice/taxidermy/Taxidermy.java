@@ -70,15 +70,16 @@ public class Taxidermy {
     }
 
     public void preInit(FMLCommonSetupEvent event) {
-        SplitNetworkHandler.registerMessage(C0UploadData.class, C0UploadData::toBytes, C0UploadData::fromBytes, C0UploadData::handle);
-        NETWORK.registerMessage(1, C1RequestDataForUUID.class, C1RequestDataForUUID::toBytes, C1RequestDataForUUID::fromBytes, C1RequestDataForUUID::handle);
-        SplitNetworkHandler.registerMessage(S2SendDataToClient.class, S2SendDataToClient::toBytes, S2SendDataToClient::fromBytes, S2SendDataToClient::handle);
-        NETWORK.registerMessage(3, C3SetBlockProperties.class, C3SetBlockProperties::toBytes, C3SetBlockProperties::fromBytes, C3SetBlockProperties::handle);
-        NETWORK.registerMessage(4, S4SyncBlockProperties.class, S4SyncBlockProperties::toBytes, S4SyncBlockProperties::fromBytes, S4SyncBlockProperties::handle);
-        NETWORK.registerMessage(5, C5RequestHeaders.class, C5RequestHeaders::toBytes, C5RequestHeaders::fromBytes, C5RequestHeaders::handle);
-        NETWORK.registerMessage(6, S6SendHeaders.class, S6SendHeaders::toBytes, S6SendHeaders::fromBytes, S6SendHeaders::handle);
-        NETWORK.registerMessage(7, C7S7SetBlockUUID.class, C7S7SetBlockUUID::toBytes, C7S7SetBlockUUID::fromBytes, C7S7SetBlockUUID::handle);
-        NETWORK.registerMessage(8, C8ToggleHidden.class, C8ToggleHidden::toBytes, C8ToggleHidden::fromBytes, C8ToggleHidden::handle);
+        SplitNetworkHandler.registerMessage(C2SUploadData.class, C2SUploadData::toBytes, C2SUploadData::fromBytes, C2SUploadData::handle);
+        NETWORK.registerMessage(1, C2SRequestDataForUUID.class, C2SRequestDataForUUID::toBytes, C2SRequestDataForUUID::fromBytes, C2SRequestDataForUUID::handle);
+        SplitNetworkHandler.registerMessage(S2CSendDataToClient.class, S2CSendDataToClient::toBytes, S2CSendDataToClient::fromBytes, S2CSendDataToClient::handle);
+        NETWORK.registerMessage(3, C2SSetBlockProperties.class, C2SSetBlockProperties::toBytes, C2SSetBlockProperties::fromBytes, C2SSetBlockProperties::handle);
+        NETWORK.registerMessage(4, S2CSyncBlockProperties.class, S2CSyncBlockProperties::toBytes, S2CSyncBlockProperties::fromBytes, S2CSyncBlockProperties::handle);
+        NETWORK.registerMessage(5, C2SRequestHeaders.class, C2SRequestHeaders::toBytes, C2SRequestHeaders::fromBytes, C2SRequestHeaders::handle);
+        NETWORK.registerMessage(6, S2CSendHeaders.class, S2CSendHeaders::toBytes, S2CSendHeaders::fromBytes, S2CSendHeaders::handle);
+        NETWORK.registerMessage(7, C2SSetBlockUUID.class, C2SSetBlockUUID::toBytes, C2SSetBlockUUID::fromBytes, C2SSetBlockUUID::handle);
+        NETWORK.registerMessage(8, S2CSetBlockUUID.class, S2CSetBlockUUID::toBytes, S2CSetBlockUUID::fromBytes, S2CSetBlockUUID::handle);
+        NETWORK.registerMessage(9, C2SToggleHidden.class, C2SToggleHidden::toBytes, C2SToggleHidden::fromBytes, C2SToggleHidden::handle);
 
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> Taxidermy::registerTESR);
     }

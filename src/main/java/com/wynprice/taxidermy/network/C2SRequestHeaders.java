@@ -9,20 +9,20 @@ import net.minecraftforge.fml.network.PacketDistributor;
 
 import java.util.function.Supplier;
 
-public class C5RequestHeaders {
-    public static C5RequestHeaders fromBytes(PacketBuffer buf) {
-        return new C5RequestHeaders();
+public class C2SRequestHeaders {
+    public static C2SRequestHeaders fromBytes(PacketBuffer buf) {
+        return new C2SRequestHeaders();
     }
 
-    public static void toBytes(C5RequestHeaders packet, PacketBuffer buf) {
+    public static void toBytes(C2SRequestHeaders packet, PacketBuffer buf) {
     }
 
-    public static void handle(C5RequestHeaders packet, Supplier<NetworkEvent.Context> supplier) {
+    public static void handle(C2SRequestHeaders packet, Supplier<NetworkEvent.Context> supplier) {
         NetworkEvent.Context context = supplier.get();
         context.enqueueWork(() -> {
             ServerPlayerEntity sender = context.getSender();
             for (DataHandler<?> handler : DataHandler.HANDLERS) {
-                Taxidermy.NETWORK.send(PacketDistributor.PLAYER.with(() -> sender), new S6SendHeaders(handler, handler.getHeaders()));
+                Taxidermy.NETWORK.send(PacketDistributor.PLAYER.with(() -> sender), new S2CSendHeaders(handler, handler.getHeaders()));
             }
         });
         context.setPacketHandled(true);

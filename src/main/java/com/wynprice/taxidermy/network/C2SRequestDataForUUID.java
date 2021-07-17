@@ -12,26 +12,26 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 @AllArgsConstructor
-public class C1RequestDataForUUID {
+public class C2SRequestDataForUUID {
 
     private UUID uuid;
     private DataHandler<?> dataHandler;
 
-    public static C1RequestDataForUUID fromBytes(PacketBuffer buf) {
-        return new C1RequestDataForUUID(buf.readUUID(), DataHandler.read(buf));
+    public static C2SRequestDataForUUID fromBytes(PacketBuffer buf) {
+        return new C2SRequestDataForUUID(buf.readUUID(), DataHandler.read(buf));
     }
 
-    public static void toBytes(C1RequestDataForUUID packet, PacketBuffer buf) {
+    public static void toBytes(C2SRequestDataForUUID packet, PacketBuffer buf) {
         buf.writeUUID(packet.uuid);
         DataHandler.write(buf, packet.dataHandler);
     }
 
-    public static void handle(C1RequestDataForUUID message, Supplier<NetworkEvent.Context> supplier) {
+    public static void handle(C2SRequestDataForUUID message, Supplier<NetworkEvent.Context> supplier) {
         NetworkEvent.Context context = supplier.get();
         context.enqueueWork(() -> {
             World world = context.getSender().level;
             message.dataHandler.createHandler(message.uuid).ifPresent(h -> {
-                SplitNetworkHandler.sendSplitMessage(new S2SendDataToClient(message.uuid, h), PacketDistributor.DIMENSION.with(world::dimension));
+                SplitNetworkHandler.sendSplitMessage(new S2CSendDataToClient(message.uuid, h), PacketDistributor.DIMENSION.with(world::dimension));
             });
         });
         context.setPacketHandled(true);

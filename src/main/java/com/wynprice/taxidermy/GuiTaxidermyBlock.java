@@ -7,12 +7,12 @@ import lombok.RequiredArgsConstructor;
 import net.dumbcode.dumblibrary.client.gui.*;
 import net.dumbcode.dumblibrary.client.model.dcm.DCMModel;
 import net.dumbcode.dumblibrary.server.network.SplitNetworkHandler;
+import net.dumbcode.dumblibrary.server.taxidermy.TaxidermyContainer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.MouseHelper;
 import net.minecraft.client.gui.AbstractGui;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.IGuiEventListener;
-import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.Widget;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.vector.Vector3f;
@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.Consumer;
 
-public class GuiTaxidermyBlock extends Screen {
+public class GuiTaxidermyBlock extends TaxidermyScreen {
 
     private static boolean fileDialogOpen = false;
 
@@ -62,14 +62,14 @@ public class GuiTaxidermyBlock extends Screen {
     private final List<SelectListEntry> modelEntries = new ArrayList<>();
     private UploadEntryEntry modelUpload;
 
-    public GuiTaxidermyBlock(TaxidermyBlockEntity blockEntity) {
-        super(new StringTextComponent("Taxidermy :)"));
+    public GuiTaxidermyBlock(TaxidermyBlockEntity blockEntity, TaxidermyContainer container) {
+        super(container);
         this.blockEntity = blockEntity;
     }
 
     @Override
     public void init() {
-        Taxidermy.NETWORK.sendToServer(new C5RequestHeaders());
+        Taxidermy.NETWORK.sendToServer(new C2SRequestHeaders());
 
         this.addButton(this.modelSelectionBox = new GuiDropdownBox<>(this.width/2-175, this.height/4-40, 170, 20, this.height/80, () -> this.modelEntries));
         this.addButton(this.textureSelectionBox = new GuiDropdownBox<>(this.width/2+5, this.height/4-40, 170, 20, this.height/80, () -> this.textureEntries));
@@ -85,7 +85,7 @@ public class GuiTaxidermyBlock extends Screen {
         }));
 
         this.addButton(new ExtendedButton(this.width/2 - sliderWidth/2, this.height-30, sliderWidth, 20, new StringTextComponent("Toggle Hidden"), b ->
-            Taxidermy.NETWORK.sendToServer(new C8ToggleHidden(this.blockEntity.getBlockPos()))
+            Taxidermy.NETWORK.sendToServer(new C2SToggleHidden())
         ));
 
 
@@ -187,7 +187,7 @@ public class GuiTaxidermyBlock extends Screen {
     }
 
     public void onChange(GuiNumberEntry entry, int id) {
-        Taxidermy.NETWORK.sendToServer(new C3SetBlockProperties(this.blockEntity.getBlockPos(), id, (float) entry.getValue()));
+        Taxidermy.NETWORK.sendToServer(new C2SSetBlockProperties(id, (float) entry.getValue()));
     }
 
     public void setProperties(int index, float value) {
@@ -230,7 +230,7 @@ public class GuiTaxidermyBlock extends Screen {
 
         @Override
         public boolean onClicked(double relMouseX, double relMouseY, double mouseX, double mouseY) {
-            Taxidermy.NETWORK.sendToServer(new C7S7SetBlockUUID(blockEntity.getBlockPos(), this.header.getUuid(), this.handler));
+            Taxidermy.NETWORK.sendToServer(new C2SSetBlockUUID(this.header.getUuid(), this.handler));
             return true;
         }
     }
@@ -259,7 +259,7 @@ public class GuiTaxidermyBlock extends Screen {
         public boolean onClicked(double relMouseX, double relMouseY, double mouseX, double mouseY) {
             if(this.path != null) {
                 this.handler.createHandler(this.path, true).ifPresent(h ->
-                    SplitNetworkHandler.sendSplitMessage(new C0UploadData(blockEntity.getBlockPos(), UUID.randomUUID(), FilenameUtils.getName(this.path.toString()), h), PacketDistributor.SERVER.noArg())
+                    SplitNetworkHandler.sendSplitMessage(new C2SUploadData(UUID.randomUUID(), FilenameUtils.getName(this.path.toString()), h), PacketDistributor.SERVER.noArg())
                 );
                 this.path = null;
             } else {

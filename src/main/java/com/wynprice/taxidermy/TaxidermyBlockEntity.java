@@ -2,14 +2,21 @@ package com.wynprice.taxidermy;
 
 import lombok.Getter;
 import lombok.Setter;
+import net.dumbcode.dumblibrary.client.gui.TaxidermyScreen;
 import net.dumbcode.dumblibrary.client.model.dcm.DCMModel;
 import net.dumbcode.dumblibrary.server.taxidermy.BaseTaxidermyBlockEntity;
+import net.dumbcode.dumblibrary.server.taxidermy.TaxidermyContainer;
 import net.minecraft.block.BlockState;
+import net.minecraft.client.gui.IHasContainer;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.vector.Vector3f;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
 
+import javax.print.attribute.standard.Sides;
 import java.util.UUID;
 
 @Getter
@@ -73,7 +80,12 @@ public class TaxidermyBlockEntity extends BaseTaxidermyBlockEntity {
         return super.save(nbt);
     }
 
-//    @Override
+    @OnlyIn(Dist.CLIENT)
+    public TaxidermyScreen openScreen(TaxidermyContainer container) {
+        return new GuiTaxidermyBlock(this, container);
+    }
+
+    //    @Override
 //    public boolean shouldRefresh(World world, BlockPos pos, IBlockState oldState, IBlockState newSate) {
 //        return oldState.getBlock() != newSate.getBlock();
 //    }

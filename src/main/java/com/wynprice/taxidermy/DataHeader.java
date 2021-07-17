@@ -20,8 +20,8 @@ public class DataHeader {
     public static DataHeader readFromBuf(PacketBuffer buf) {
         return new DataHeader(
             buf.readUUID(),
-            buf.readUtf(),
-            buf.readUtf()
+            buf.readUtf(32767),
+            buf.readUtf(32767)
         );
     }
 }

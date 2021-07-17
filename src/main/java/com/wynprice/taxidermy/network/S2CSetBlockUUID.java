@@ -4,7 +4,11 @@ import com.wynprice.taxidermy.DataHandler;
 import com.wynprice.taxidermy.Taxidermy;
 import com.wynprice.taxidermy.TaxidermyBlockEntity;
 import lombok.AllArgsConstructor;
-import net.dumbcode.dumblibrary.server.network.NetworkUtils;
+import net.dumbcode.dumblibrary.server.taxidermy.BaseTaxidermyBlockEntity;
+import net.dumbcode.dumblibrary.server.taxidermy.TaxidermyContainer;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.world.ClientWorld;
+import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
@@ -16,36 +20,34 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 @AllArgsConstructor
-public class C7S7SetBlockUUID {
+public class S2CSetBlockUUID {
 
     private BlockPos pos;
     private UUID uuid;
     private DataHandler<?> handler;
 
-    public static C7S7SetBlockUUID fromBytes(PacketBuffer buf) {
-        return new C7S7SetBlockUUID(
+    public static S2CSetBlockUUID fromBytes(PacketBuffer buf) {
+        return new S2CSetBlockUUID(
             buf.readBlockPos(),
             buf.readUUID(),
             DataHandler.read(buf)
         );
     }
 
-    public static void toBytes(C7S7SetBlockUUID packet, PacketBuffer buf) {
+    public static void toBytes(S2CSetBlockUUID packet, PacketBuffer buf) {
         buf.writeBlockPos(packet.pos);
         buf.writeUUID(packet.uuid);
         DataHandler.write(buf, packet.handler);
     }
 
-    public static void handle(C7S7SetBlockUUID message, Supplier<NetworkEvent.Context> supplier) {
+    public static void handle(S2CSetBlockUUID message, Supplier<NetworkEvent.Context> supplier) {
         NetworkEvent.Context context = supplier.get();
         context.enqueueWork(() -> {
-            World world = NetworkUtils.getPlayer(supplier).level;
-            TileEntity entity = world.getBlockEntity(message.pos);
+            ClientWorld level = Minecraft.getInstance().level;
+            TileEntity entity = level.getBlockEntity(message.pos);
             if(entity instanceof TaxidermyBlockEntity) {
                 message.handler.applyTo((TaxidermyBlockEntity) entity, message.uuid);
-            }
-            if(!world.isClientSide) {
-                Taxidermy.NETWORK.send(PacketDistributor.DIMENSION.with(world::dimension), new C7S7SetBlockUUID(message.pos, message.uuid, message.handler));
+
             }
         });
         context.setPacketHandled(true);
